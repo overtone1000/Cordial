@@ -1,8 +1,18 @@
 <script lang="ts">
-	const light_css = "/smui.css";
+  import { onMount } from "svelte";
+	
+  const light_css = "/smui.css";
 	const dark_css = "/smui-dark.css";
 
 	let dark_mode:boolean|undefined=undefined;
+
+  let resp = "Loading..."
+
+  onMount(() => {
+      
+  });
+
+  
 </script>
 
 <svelte:head>
@@ -27,7 +37,7 @@
 
 
 <div>
-	Hello!
+	{resp}
 </div>
 
 <style>
