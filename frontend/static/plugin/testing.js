@@ -1,5 +1,5 @@
 
-function onload (event)
+function on_xhr_load (event)
 {
     alert("Result loaded.");
     if(event)
@@ -17,30 +17,18 @@ function waiting ()
 
 }
 
-function TestMessage()
+
+
+function RunTest()
 {
-    var async_request=false;
+    alert("Running test.");
+    var async_request=true;
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "http://localhost:5173/test_xml", async_request);
-    xhr.setRequestHeader('Content-Type', 'application/json'); //Leave this content type regardless of what's actually contained. 'plain/text' caused CSRF protection to manifest.
-    var message="This is a test";
+    xhr.setRequestHeader('Content-Type', 'application/text'); //Leave this content type regardless of what's actually contained. 'plain/text' caused CSRF protection to manifest.
+    //xhr.onload=()=>{alert("Hi!")};
+    //xhr.addEventListener("load",on_xhr_load); //Doesn't work
+    var message="{message:test}";    
     xhr.send(message);
-
-    //alert("Response: " + xhr.readyState + " " + xhr.status + " " + xhr.statusText + " " + xhr.responseText);
-    
-
-    /*
-    while(xhr.readyState !=4)
-    {
-        setTimeout(waiting, 500);
-    }
-    if(xhr.status >= 200 && xhr.status <= 300) //Success
-    {
-        onload(xhr.responseText);
-    }
-    else
-    {
-        alert("Wrong xhr status:" + xhr.statusText);
-    }
-    */
 }
+

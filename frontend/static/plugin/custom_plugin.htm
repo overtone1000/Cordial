@@ -1,41 +1,42 @@
 <!-- iSiteRadiology plugin for PowerScribe 360 -->
 <html>
 <head>
-<title>PowerScribe 360 iSiteRadiology Plug In</title>
-<script type="text/javascript" language="javascript" src="custom_plugin.js"></script>
-<script type="text/javascript" language="javascript" src="custom_plugin_main.js"></script>
+<title>Plugin Testing</title>
+<script type="text/javascript" language="javascript" src="reload.js"></script>
 <script type="text/javascript" language="javascript" src="testing.js"></script>
 
 <script for="RadWhereCtrl" event="OpenStudy(mrn, accessions)">
-   OnOpenStudy(mrn , accessions);
+   
 </script>
 <script for="RadWhereCtrl" event="ReportClosed(siteName, accessionNumbers, status, isAddendum, plainText, richText)">
-   OnReportClosed(siteName, accessionNumbers, status, isAddendum, plainText, richText);
+   
 </script>
 <script for="RadWhereCtrl" event="ReportOpened(siteName, accessionNumbers, status, isAddendum, plainText, richText)">
-   OnReportOpened(siteName, accessionNumbers, status, isAddendum, plainText, richText);
+   
 </script>
 <script for="RadWhereCtrl" event="UserLoggedOut(userName)">
-   OnUserLoggedOut(userName);
+   
 </script>
 <script for="RadWhereCtrl" event="UserLoggedIn(userName)">
-   OnUserLoggedIn(userName);
+   
 </script>
 <script for="RadWhereCtrl" event="Terminated()">
-   OnTerminated();
+   
 </script>
 <script for="RadWhereCtrl" event="AccessionNumbersChanged(siteName, accessionNumbers, status, isAddendum, plainText, richText)">
-   OnAccessionNumbersChanged(siteName, accessionNumbers, status, isAddendum, plainText, richText);
+   
 </script>
 <script for="RadWhereCtrl" event="Launched()">
-   OnLaunched();
+   
 </script>
 </head>
 
 <body onload="OnLoad()" onunload="OnUnload()">
-	<h1>Custom PlugIn</h1>
+	<h1>Plugin Testing 1</h1>
 	<object id="xmldso" classid="clsid:550dda30-0541-11d2-9ca9-0060b0ec3d39"></object>
 	<object id="RadWhereCtrl" classid="clsid:c1fa1a92-068c-411f-bf7f-66de29f51a22"></object>
 	<object id="LogWriter" classid="clsid:F292222F-7A73-418B-9DFC-8E6A8C05B40B"></object>
+   <button onclick="RunTest()" type="button">Test</button> 
+   <button onclick="Reload()" type="button">Reload</button> 
 </body>
 </html>

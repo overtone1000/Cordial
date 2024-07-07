@@ -96,8 +96,6 @@ function IsRadWhereCtrlExist() {
 function OnLoad() {
 	// uncomment to debug:
 	//debugger;
-
-	TestMessage();
 	
     if (!IsRadWhereCtrlExist())
 	{
