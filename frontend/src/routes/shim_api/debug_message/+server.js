@@ -8,7 +8,7 @@ export async function POST(params) {
     
     return new Response(
         String(
-            "Test response confirmed"
+            "Received debug message: " + body.debug_message
         )
     );
   };
