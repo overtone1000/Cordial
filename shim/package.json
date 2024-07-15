@@ -1,0 +1,18 @@
+{
+  "name": "intellispace_plugin_shim",
+  "source": "./src/shim.ts",
+  "scripts": {
+    "start": "parcel",
+    "build": "parcel build --no-optimize --no-cache --no-content-hash"
+  },
+  "targets": {
+    "default": {
+      "distDir": "./output",
+      "context": "browser",
+      "outputFormat":"global"
+    }
+  },
+  "devDependencies": {
+    "parcel": "^2.12.0"
+  }
+}
