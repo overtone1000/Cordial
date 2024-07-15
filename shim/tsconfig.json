@@ -1,11 +1,12 @@
 {
-    "include": ["src/ts/**/*"],
+    "include": ["src/ts/**/*", "src/ts/.d.ts"],
 
     "compilerOptions": {
       "target": "ES5", //Lowest possible target. Platform is Mozilla 4.
       "moduleResolution": "node",
-      "isolatedModules": false,
+      "isolatedModules": true,
       "sourceMap": false, //Not suppored in Mozilla 4,
-      "outDir": "prod/js"
+      "outDir": "prod/js",
+      "noResolve": true
     }
   }

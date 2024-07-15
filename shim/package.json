@@ -1,15 +1,15 @@
 {
   "name": "intellispace_plugin_shim",
   "scripts": {
-    "clean": "del ./prod/*",
-    "copy": "cpx ./src/shim.html ./prod/",
+    "clean": "del-cli ./prod/*",
+    "copy": "cpx src/shim.html prod/ && cpx src/lib/** prod/lib",
     "compile_typescript": "tsc",
-    "build": "npm run clean && npm run copy && npm run compile_typescript"
+    "copy_to_svelte":"del-cli --force ../frontend/static/plugin2/** && cpx ./prod/** ../frontend/static/plugin2/",
+    "build": "npm run clean && npm run copy && npm run compile_typescript & npm run copy_to_svelte"
   },
   "dependencies": {
     "cpx": "^1.5.0",
     "del-cli": "^5.1.0",
-    "tsc": "^2.0.4",
     "typescript": "^5.5.3"
   }
 }

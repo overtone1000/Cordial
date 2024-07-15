@@ -1,18 +1,15 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var Radiology_1 = require("./extern/Radiology");
 function OnLoad() {
     var user;
     var _iSiteVersion;
     try {
-        user = Radiology_1.Radiology.GetCurrentUser();
+        user = Radiology.GetCurrentUser();
     }
     catch (e) {
         Shim_Debug("Couldn't get user.");
         return;
     }
     try {
-        _iSiteVersion = Radiology_1.Radiology.GetVersion();
+        _iSiteVersion = Radiology.GetVersion();
         if (_iSiteVersion < "3.5") {
             Shim_Debug("Version is lower than expected: " + _iSiteVersion);
         }
@@ -70,9 +67,9 @@ function Query(mrn, accession) {
 function RadiologyQuery(query) {
     Shim_Debug("Query string: " + query);
     var examNode = null;
-    var queryResults = Radiology_1.Radiology.Query(query, "INTERPRETATION", 1);
+    var queryResults = Radiology.Query(query, "INTERPRETATION", 1);
     if (queryResults == "") {
-        var error = Radiology_1.Radiology.GetLastErrorCode();
+        var error = Radiology.GetLastErrorCode();
         Shim_Debug("Radiology error: " + error);
     }
     else {
@@ -82,7 +79,7 @@ function RadiologyQuery(query) {
         var nodeList = doc.getElementsByTagName("QueryResult");
         var numMatches = nodeList.item(0).selectSingleNode("TotalMatches").text;
         if (numMatches == 0) {
-            queryResults = Radiology_1.Radiology.Query(query, "LOOKUP", 1);
+            queryResults = Radiology.Query(query, "LOOKUP", 1);
             if (queryResults != "") {
                 doc = xmldso.XMLDocument;
                 doc.loadXML(queryResults);

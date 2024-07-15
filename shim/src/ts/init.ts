@@ -1,4 +1,5 @@
-import {Radiology} from "./extern/Radiology";
+type RadiologyInterface=import("./.d.ts").RadiologyInterface;
+declare var Radiology:RadiologyInterface;
 
 function OnLoad() {
 	var user;
