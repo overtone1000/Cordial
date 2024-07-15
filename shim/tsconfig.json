@@ -1,5 +1,6 @@
 {
     "include": ["src/ts/**/*"],
+
     "compilerOptions": {
       "target": "ES5", //Lowest possible target. Platform is Mozilla 4.
       "moduleResolution": "node",

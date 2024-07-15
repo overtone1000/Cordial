@@ -1,6 +1,15 @@
 {
   "name": "intellispace_plugin_shim",
   "scripts": {
-    "build": "parcel build --no-optimize --no-cache --no-scope-hoist --no-content-hash"
+    "clean": "del ./prod/*",
+    "copy": "cpx ./src/shim.html ./prod/",
+    "compile_typescript": "tsc",
+    "build": "npm run clean && npm run copy && npm run compile_typescript"
+  },
+  "dependencies": {
+    "cpx": "^1.5.0",
+    "del-cli": "^5.1.0",
+    "tsc": "^2.0.4",
+    "typescript": "^5.5.3"
   }
 }
