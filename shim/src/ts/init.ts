@@ -67,7 +67,7 @@ function QueryMRN(mrn) {
 
 function Query(mrn, accession) {
     var str;
-    if (mrn != undefined && mrn != null && mrn != "")
+    if (mrn !== undefined && mrn !== null && mrn !== "")
         str = "x00080050 = \"" + accession + "\" AND x00100020 = \"" + mrn + "\"";
     else
         str = "x00080050 = \"" + accession + "\"";
@@ -80,28 +80,12 @@ function RadiologyQuery(query) {
 
     var examNode = null;
     var queryResults = Radiology.Query(query, "INTERPRETATION", 1);
-    if (queryResults == "") {
+    if (queryResults === "") {
         var error = Radiology.GetLastErrorCode();
         Shim_Debug("Radiology error: " + error);
     }
     else {
         Shim_Debug("Got query response:" + JSON.stringify(queryResults));
-        var doc = xmldso.XMLDocument;
-        doc.loadXML(queryResults);
-        var nodeList = doc.getElementsByTagName("QueryResult");
-        var numMatches = nodeList.item(0).selectSingleNode("TotalMatches").text;
-        if (numMatches == 0) {
-            queryResults = Radiology.Query(query, "LOOKUP", 1);
-            if (queryResults != "") {
-                doc = xmldso.XMLDocument;
-                doc.loadXML(queryResults);
-                nodeList = doc.getElementsByTagName("QueryResult");
-                numMatches = nodeList.item(0).selectSingleNode("TotalMatches").text;
-            }
-        }
-        if (numMatches > 0) {
-            examNode = doc.getElementsByTagName("Exam");
-        }
     }
     return examNode;
 }

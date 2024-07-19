@@ -1,6 +1,6 @@
 export interface Radiology_Interface {
     GetCurrentUser: () => string,
-    
+
     GetVersion: () => string,
     
     GetLastErrorCode: () => string,
@@ -19,6 +19,22 @@ export interface Radiology_Interface {
         open_new:boolean //true if an existing page should not be used
     ) => string, //returns the canvas page ID or empty if there was an error
     
+    CloseCanvasPage:(
+        canvas_page_id:string, //canvas page ID to close
+        discard_changes:boolean, //?
+    )=>boolean, //Success/failure
+
+    ListCanvasPages:()=>string, //XML containing the canvas page IDs
+
+    GetCanvasPageStatus:(
+        canvas_page_id:string, //canvas page of interest
+    )=>string //XML containing canvas page details
+    
+    LockExam:(
+        internal_exam_id:string, //internal exam ID
+        lock_status:boolean //true will lock the exam, false will unlock it
+    )=>boolean, //Success/failure
+
     FindShelfID:(
         internal_exam_id:string //the internal exam ID whose shelf should be found
     )=>string, //XML encoded string with shelf IDs; empty if error
@@ -31,13 +47,4 @@ export interface Radiology_Interface {
         canvas_page_id:string //canvas page ID to get shelfs from
     )=>string, //XML encoded string with shelf status including shelf IDs and ID (one ID for the collection of shleves?); empty if error
     
-    CloseCanvasPage:(
-        canvas_page_id:string, //canvas page ID to close
-        discard_changes:boolean, //?
-    )=>boolean, //Success/failure
-    
-    LockExam:(
-        internal_exam_id:string, //internal exam ID
-        lock_status:boolean //true will lock the exam, false will unlock it
-    )=>boolean, //Success/failure
 }

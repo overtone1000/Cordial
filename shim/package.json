@@ -4,7 +4,7 @@
     "clean": "del-cli ./prod/*",
     "copy": "cpx src/shim.html prod/ && cpx src/lib/** prod/lib",
     "compile_typescript": "tsc",
-    "copy_to_svelte": "del-cli --force ../frontend/static/plugin2/** && cpx ./prod/** ../frontend/static/plugin2/",
+    "copy_to_svelte": "del-cli --force ../frontend/static/plugin2/** && cpx ./prod/** ../frontend/static/plugin/",
     "prebuild": "npm-run-all clean copy",
     "build": "npm run compile_typescript",
     "postbuild": "npm-run-all copy_to_svelte"
