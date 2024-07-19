@@ -1,4 +1,12 @@
 function Reload() {
-    window.location.href = window.location.pathname + window.location.search + window.location.hash;
+    var newpathname=window.location.pathname;
+    var file_prefix="file://";
+    if(window.location.href.length>file_prefix.length && window.location.href.substring(0,file_prefix.length+1)===file_prefix)
+    {
+        newpathname=file_prefix+newpathname;
+    }
+    window.location.href=newpathname;
+
+    //window.location.reload()
     return false;
 }
