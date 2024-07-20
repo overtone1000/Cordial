@@ -16,7 +16,7 @@
 			"path": "shim",
 			"group": {
 				"kind": "build",
-				"isDefault": true
+				"isDefault": false
 			},
 			"problemMatcher": [],
 			"label": "npm: build - shim",
