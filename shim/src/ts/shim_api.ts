@@ -1,7 +1,7 @@
-var url = "http://localhost:5173/shim_api/";
+var url = "http://localhost:43528/shim/";
 var debug_context = "debug_message";
 
-function Shim_POST(api_context:string, body:string, return_response:boolean) {
+function Shim_POST(api_context: string, body: string, return_response: boolean) {
     var async_request = false;
     var xhr = new XMLHttpRequest();
     xhr.open("POST", url + api_context, async_request);

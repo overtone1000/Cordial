@@ -4,24 +4,42 @@ use warp::Filter;
 
 const SHIM_ADDRESS: u16 = 43528;
 
+pub mod server;
+
+#[derive(Clone, Debug)]
+struct Command {
+    command: String,
+}
+
 pub async fn tokio_serve() {
     // GET /hello/warp => 200 OK with body "Hello, warp!"
-    println!("Starting server.");
+    println!("Building server");
 
     let hello_handler = |name| {
         println!("Responding...");
         format!("Hello, {}!", name)
     };
 
-    let hello = warp::path!("hello" / String).map(hello_handler);
+    let command: Command;
+    let shim_route = warp::post()
+        .and(warp::path("shim"))
+        .and(warp::path::end())
+        .and(warp::body::json())
+        .and(warp::any().map(move || command.clone()))
+        .and_then(server::shim_post::handle);
+
+    let hello_route = warp::path!("hello" / String).map(hello_handler);
+
+    let routes = shim_route.or(hello_route);
 
     let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), SHIM_ADDRESS);
 
-    warp::serve(hello).run(socket).await;
+    println!("Starting server");
+    warp::serve(routes).run(socket).await;
 }
 
-pub async fn tauri_start() {
+pub fn tauri_start() {
     tauri::Builder::default()
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("Tauri start error");
 }

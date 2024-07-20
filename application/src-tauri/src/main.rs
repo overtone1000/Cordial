@@ -4,12 +4,14 @@
 #[tokio::main]
 async fn main() {
     println!("Starting Cordial");
-    println!("Starting Cordial Server");
-    let server = app::tokio_serve();
-    println!("Creating Cordial Window");
-    std::future::join!(server, app::tauri_start());
+
+    tauri::async_runtime::set(tokio::runtime::Handle::current()); //Manually manage the tokio asynchronous runtime
+
+    println!("Spawning server");
+    tokio::spawn(app::tokio_serve());
+
+    println!("Creating interface");
     app::tauri_start();
-    println!("Server Await");
-    server.await;
+
     println!("Closing Cordial");
 }
