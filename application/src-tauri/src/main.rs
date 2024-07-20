@@ -3,7 +3,13 @@
 
 #[tokio::main]
 async fn main() {
-  let server=app::tokio_serve();
-  app::tauri_start();
-  server.await;
+    println!("Starting Cordial");
+    println!("Starting Cordial Server");
+    let server = app::tokio_serve();
+    println!("Creating Cordial Window");
+    std::future::join!(server, app::tauri_start());
+    app::tauri_start();
+    println!("Server Await");
+    server.await;
+    println!("Closing Cordial");
 }
