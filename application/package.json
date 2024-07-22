@@ -11,7 +11,8 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"tauri": "tauri",
-		"tauri-dev": "WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri dev"
+		"tauri-dev": "WEBKIT_DISABLE_DMABUF_RENDERER=1 tauri dev",
+		"tauri-dev-win": "tauri dev"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",

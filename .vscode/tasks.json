@@ -2,15 +2,6 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "typescript",
-			"tsconfig": "shim/tsconfig.json",
-			"problemMatcher": [
-				"$tsc"
-			],
-			"group": "build",
-			"label": "tsc: build - shim/tsconfig.json"
-		},
-		{
 			"type": "npm",
 			"script": "build",
 			"path": "shim",
@@ -19,8 +10,31 @@
 				"isDefault": false
 			},
 			"problemMatcher": [],
-			"label": "npm: build - shim",
-			"detail": "npm run compile_typescript"
-		}
-	]
+			"label": "Shim: Build",
+			"detail": "Build the shim plugin"
+		},
+		{
+			"type": "npm",
+			"script": "tauri-dev",
+			"path": "application",
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": [],
+			"label": "Tauri: Dev (Linux)",
+			"detail": "Start Tauri app development for Linux"
+		},
+		{
+			"type": "npm",
+			"script": "tauri-dev-win",
+			"path": "application",
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": [],
+			"label": "Tauri: Dev (Win)",
+			"detail": "Start Tauri app development for Windows"
+		}	]
 }
