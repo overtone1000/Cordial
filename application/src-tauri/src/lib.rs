@@ -16,13 +16,11 @@ pub async fn tokio_serve() {
         format!("Hello, {}!", name)
     };
 
-    let command: ShimCommand = ShimCommand::empty();
-
     let shim_route = warp::post()
         .and(warp::path("shim"))
         .and(warp::path::end())
         .and(warp::body::json())
-        .and(server::shim_post::map_command(command.clone()))
+        //.and(server::shim_post::map_command(command.clone())) //This is terrible! Parse it yourself.
         .and_then(server::shim_post::handle);
 
     let hello_route = warp::path!("hello" / String).map(hello_handler);
