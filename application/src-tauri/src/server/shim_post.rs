@@ -6,6 +6,7 @@ use warp::Filter;
 #[serde(rename_all = "lowercase")]
 pub(crate) enum CommandType {
     Debug,
+    Heartbeat
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -29,9 +30,10 @@ pub(crate) fn map_command(
 }
 
 pub(crate) async fn handle(
-    mut something: String,
+    raw: String,
     command: ShimCommand,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let reply: String = format!("Received: {:?}", command);
+    let reply: String = format!("Received: {:?}, {:?}", command, raw);
+    println!("Sending: {}", reply);
     Ok(warp::reply::json(&reply))
 }
