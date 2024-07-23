@@ -1,13 +1,17 @@
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::{
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+    sync::Arc,
+};
 
-use server::shim_post::ShimCommand;
+use server::poll_queue::PollQueue;
 use warp::Filter;
 
 const SHIM_ADDRESS: u16 = 43528;
 
 pub mod server;
+pub mod shim_api;
 
-pub async fn tokio_serve() {
+pub async fn tokio_serve<'a>(poll_queue_arc: Arc<PollQueue>) {
     // GET /hello/warp => 200 OK with body "Hello, warp!"
     println!("Building server");
 
@@ -16,12 +20,16 @@ pub async fn tokio_serve() {
         format!("Hello, {}!", name)
     };
 
+    //let poll_queue_arc = std::sync::Arc::new(PollQueue::new());
+    let pollclone = poll_queue_arc.clone();
+    let shim_event_handler = move |body: String| pollclone.handle(body);
+
     let shim_route = warp::post()
         .and(warp::path("shim"))
         .and(warp::path::end())
         .and(warp::body::json())
         //.and(server::shim_post::map_command(command.clone())) //This is terrible! Parse it yourself.
-        .and_then(server::shim_post::handle);
+        .and_then(shim_event_handler);
 
     let hello_route = warp::path!("hello" / String).map(hello_handler);
 
