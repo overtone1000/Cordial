@@ -1,5 +1,10 @@
 use crate::shim_api::shim_events::ShimEvent;
-use std::collections::VecDeque;
+use std::{
+    borrow::BorrowMut,
+    collections::VecDeque,
+    ops::DerefMut,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Debug)]
 struct InvalidJSON;
@@ -7,14 +12,33 @@ impl warp::reject::Reject for InvalidJSON {}
 
 #[derive(Clone)]
 pub struct PollQueue {
-    polls: (),
+    polls: u32,
 }
 
 impl PollQueue {
     pub fn new() -> PollQueue {
-        PollQueue { polls: () }
+        PollQueue { polls: 0 }
     }
-    pub(crate) async fn handle(&self, body: String) -> Result<impl warp::Reply, warp::Rejection> {
+
+    pub(crate) fn modify(&mut self) {
+        self.polls = self.polls + 1;
+    }
+
+    pub(crate) async fn handle(
+        queue_arc: Arc<Mutex<PollQueue>>,
+        body: String,
+    ) -> Result<impl warp::Reply, warp::Rejection> {
+        let mut pollqueue = match queue_arc.lock() {
+            Ok(pollqueue) => pollqueue,
+            Err(e) => {
+                panic!("Couldn't lock mutex! {}", e);
+            }
+        };
+
+        pollqueue.polls = pollqueue.polls + 1;
+
+        println!("Owned queue is now {}", pollqueue.polls);
+
         println!("Received: {:?}", body);
         let event: ShimEvent = match serde_json::from_str(&body) {
             Ok(event) => event,

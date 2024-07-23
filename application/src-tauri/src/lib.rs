@@ -1,6 +1,6 @@
 use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
-    sync::Arc,
+    sync::{Arc, Mutex},
 };
 
 use server::poll_queue::PollQueue;
@@ -20,9 +20,8 @@ pub async fn tokio_serve<'a>(poll_queue_arc: Arc<PollQueue>) {
         format!("Hello, {}!", name)
     };
 
-    //let poll_queue_arc = std::sync::Arc::new(PollQueue::new());
-    let pollclone = poll_queue_arc.clone();
-    let shim_event_handler = move |body: String| pollclone.handle(body);
+    let pollclone = Arc::new(Mutex::new(PollQueue::new()));
+    let shim_event_handler = move |body: String| PollQueue::handle(pollclone.clone(), body);
 
     let shim_route = warp::post()
         .and(warp::path("shim"))
