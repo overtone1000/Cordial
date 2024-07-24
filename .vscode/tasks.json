@@ -36,5 +36,6 @@
 			"problemMatcher": [],
 			"label": "Tauri: Dev (Win)",
 			"detail": "Start Tauri app development for Windows"
-		}	]
+		}	
+	]
 }

@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+type CommunicationID = u64;
 type QueryString = String;
 
 /*
@@ -17,8 +18,10 @@ pub(crate) enum QueryType {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub(crate) enum ShimFunction {
-    Query(QueryString, QueryType, u32),
+    Query(CommunicationID, QueryString, QueryType, u32),
 }
+
+pub(crate) type ShimFunctionPackage = Vec<ShimFunction>;
 
 #[cfg(test)]
 mod tests {
@@ -26,11 +29,21 @@ mod tests {
     use crate::shim_api::commons::test_serialization;
 
     #[test]
-    fn test_query() {
-        test_serialization(ShimFunction::Query(
-            "<XML Query String Goes Here>".to_string(),
-            super::QueryType::INTERPRETATION,
-            1000000, //max results
-        ));
+    fn test_function_package_serialization() {
+        test_serialization(vec![
+            ShimFunction::Query(
+                51,
+                "<XML Query String Goes Here>".to_string(),
+                super::QueryType::INTERPRETATION,
+                1000000, //max results
+            ),
+            ShimFunction::Query(
+                80,
+                "<XML Query String 2 Goes Here>".to_string(),
+                super::QueryType::INTERPRETATION,
+                1000000, //max results
+            )
+        ]
+        );
     }
 }

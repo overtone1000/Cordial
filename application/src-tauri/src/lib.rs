@@ -20,14 +20,14 @@ pub async fn tokio_serve<'a>(poll_queue_arc: Arc<PollQueue>) {
         format!("Hello, {}!", name)
     };
 
-    let pollclone = Arc::new(Mutex::new(PollQueue::new()));
-    let shim_event_handler = move |body: String| PollQueue::handle(pollclone.clone(), body);
+    let pollqueue_arc = Arc::new(PollQueue::new());
+    
+    let shim_event_handler = move |body: String| PollQueue::handle_poll(pollqueue_arc.clone(), body);
 
     let shim_route = warp::post()
         .and(warp::path("shim"))
         .and(warp::path::end())
         .and(warp::body::json())
-        //.and(server::shim_post::map_command(command.clone())) //This is terrible! Parse it yourself.
         .and_then(shim_event_handler);
 
     let hello_route = warp::path!("hello" / String).map(hello_handler);
