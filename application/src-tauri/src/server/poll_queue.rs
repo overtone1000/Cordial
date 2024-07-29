@@ -1,6 +1,13 @@
-use crate::shim_api::{shim_events::{ShimEvent, ShimEventPackage}, shim_interface::ShimFunction};
+use crate::shim_api::{
+    shim_events::{ShimEvent, ShimEventPackage},
+    shim_interface::ShimFunction,
+};
 use std::{
-    collections::VecDeque, rc::Rc, sync::{Arc, Mutex}, time::Instant
+    collections::VecDeque,
+    ops::DerefMut,
+    rc::Rc,
+    sync::{Arc, Mutex},
+    time::Instant,
 };
 
 #[derive(Debug)]
@@ -12,26 +19,20 @@ struct BrokenPollQueue;
 impl warp::reject::Reject for BrokenPollQueue {}
 
 #[derive(Clone)]
-pub struct Waiter {
-    origin:Instant
-}
-
-#[derive(Clone)]
 pub struct PollQueue {
-    waiter: Rc<Mutex<Option<Waiter>>>,
-    tasks: Rc<Mutex<VecDeque<ShimFunction>>>
+    waiter: Arc<Mutex<Option<Instant>>>,
+    tasks: Arc<Mutex<VecDeque<ShimFunction>>>,
 }
 
 impl PollQueue {
     pub fn new() -> PollQueue {
-        PollQueue { 
-            waiter: Rc::new(Mutex::new(None)),
-            tasks: Rc::new(Mutex::new(VecDeque::new()))
+        PollQueue {
+            waiter: Arc::new(Mutex::new(None)),
+            tasks: Arc::new(Mutex::new(VecDeque::new())),
         }
     }
 
-    fn process_event(&self, event:ShimEvent)
-    {
+    fn process_event(&self, event: ShimEvent) {
         println!("Processing event {:?}", event);
         match event {
             ShimEvent::Poll => println!("Shim heartbeat"),
@@ -42,24 +43,27 @@ impl PollQueue {
         };
     }
 
-    fn get_poll_response(&self) -> Result<impl warp::Reply, warp::Rejection> 
-    {
+    fn get_poll_response(&self) -> Result<impl warp::Reply, warp::Rejection> {
         let dt = std::time::Instant::now();
+        println!("Processing poll response at {:?}", dt);
+
         loop {
-            let tasks=match self.tasks.lock()
-            {
+            //Fetch the tasks that need to be sent in the response
+            let tasks = match self.tasks.lock() {
                 Ok(tasks) => tasks,
                 Err(e) => {
-                    eprintln!("Couldn't lock tasks. {}",e);
+                    eprintln!("Couldn't lock tasks. {}", e);
                     return Err(warp::reject::custom(BrokenPollQueue));
-                },
+                }
             };
-            if !tasks.is_empty()
-            {
-                let reply: String = format!("Ok");
+
+            if !tasks.is_empty() {
+                //If there are tasks, send them in the return
+                let reply: String = format!("Here are some tasks from {:?}", dt);
+                eprintln!("NOT IMPLEMENTED YET");
                 return Ok(warp::reply::json(&reply));
-            }
-            else {
+            } else {
+                //Otherwise, determine wait for tasks until a newer poll comes along.
                 let mut waiter = match self.waiter.lock() {
                     Ok(waiter) => waiter,
                     Err(e) => {
@@ -68,11 +72,19 @@ impl PollQueue {
                     }
                 };
 
-                match waiter
-                {
-                    Some(waiter) => todo!(),
-                    None => todo!(),
+                let this_thread_is_the_waiter: bool = match waiter.as_mut() {
+                    Some(waiter) => *waiter <= dt,
+                    None => true,
                 };
+
+                if this_thread_is_the_waiter {
+                    *waiter = Some(dt);
+                    println!("This thread is the waiter. {:?}", dt);
+                } else {
+                    let reply: String = format!("{:?} won't wait anymore.", dt);
+                    eprintln!("NOT IMPLEMENTED YET");
+                    return Ok(warp::reply::json(&reply));
+                }
             }
         }
     }
@@ -81,7 +93,6 @@ impl PollQueue {
         queue_arc: Arc<PollQueue>,
         body: String,
     ) -> Result<impl warp::Reply, warp::Rejection> {
-
         println!("Received: {:?}", body);
         let events: ShimEventPackage = match serde_json::from_str(&body) {
             Ok(event) => event,
@@ -91,8 +102,7 @@ impl PollQueue {
         };
 
         println!("Deserialized: {:?}", events);
-        for event in events
-        {
+        for event in events {
             queue_arc.process_event(event);
         }
 
