@@ -8,7 +8,8 @@ use hyper_util::rt::{TokioIo, TokioTimer};
 use server::poll_queue::PollQueue;
 use tokio::net::TcpListener;
 
-const SHIM_ADDRESS: u16 = 43528;
+const SHIM_EVENT_PORT: u16 = 43528;
+const SHIM_CALL_PORT: u16 = 43529;
 
 pub mod server;
 pub mod shim_api;
@@ -18,15 +19,17 @@ pub async fn tokio_serve<'a>() -> Result<(), Box<dyn std::error::Error + Send + 
 
     let pollqueue = PollQueue::new();
 
-    //address is "shim"
+    let event_socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), SHIM_EVENT_PORT);
+    let call_socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), SHIM_CALL_PORT);
 
-    let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), SHIM_ADDRESS);
-
-    let listener = TcpListener::bind(socket).await?;
+    let event_listener = TcpListener::bind(event_socket).await?;
+    let call_listener = TcpListener::bind(call_socket).await?;
 
     loop {
-        let (tcp, _) = listener.accept().await?;
+        let (event_tcp_stream, _) = event_listener.accept().await?;
+        let (call_tcp_stream, _) = call_listener.accept().await?;
 
+        //Need to spawn these as separate tasks...
         let io = TokioIo::new(tcp);
         let clone = pollqueue.clone();
 
