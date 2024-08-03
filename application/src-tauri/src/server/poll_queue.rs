@@ -1,27 +1,61 @@
+use http_body_util::{BodyExt, Full};
+use hyper::{
+    body::{self, Bytes, Incoming},
+    service::Service,
+    Request, Response,
+};
+
 use crate::shim_api::{
     shim_events::{ShimEvent, ShimEventPackage},
     shim_interface::ShimFunction,
 };
 use std::{
     collections::VecDeque,
-    ops::DerefMut,
-    rc::Rc,
+    future::Future,
+    pin::Pin,
     sync::{Arc, Mutex},
     time::Instant,
 };
-
-#[derive(Debug)]
-struct InvalidJSON;
-impl warp::reject::Reject for InvalidJSON {}
-
-#[derive(Debug)]
-struct BrokenPollQueue;
-impl warp::reject::Reject for BrokenPollQueue {}
 
 #[derive(Clone)]
 pub struct PollQueue {
     waiter: Arc<Mutex<Option<Instant>>>,
     tasks: Arc<Mutex<VecDeque<ShimFunction>>>,
+}
+
+impl Service<Request<Incoming>> for PollQueue {
+    type Response = Response<Full<Bytes>>;
+    type Error = hyper::Error;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
+
+    fn call(&self, request: Request<Incoming>) -> Self::Future {
+        let method = request.method().clone();
+        let path = request.uri().path().to_string();
+        let headers = request.headers().clone();
+        let body = request.into_body();
+
+        let as_string = String::from_utf8(request.collect().await?.to_bytes().to_vec())
+            .expect("Couldn't parse bytes.");
+
+        println!(
+            "Received: {}, {}, {:?}, {}",
+            method, path, headers, as_string
+        );
+
+        let events: ShimEventPackage = match serde_json::from_str(&as_string) {
+            Ok(event) => event,
+            Err(e) => {
+                return Ok(Response::new(Full::new(Bytes::from("Invalid JSON"))));
+            }
+        };
+
+        println!("Deserialized: {:?}", events);
+        for event in events {
+            queue_arc.process_event(event);
+        }
+
+        queue_arc.get_poll_response()
+    }
 }
 
 impl PollQueue {
@@ -43,7 +77,7 @@ impl PollQueue {
         };
     }
 
-    fn get_poll_response(&self) -> Result<impl warp::Reply, warp::Rejection> {
+    fn get_poll_response(&self) -> Result<Response<Full<Bytes>>, hyper::Error> {
         let dt = std::time::Instant::now();
         println!("Processing poll response at {:?}", dt);
 
@@ -53,7 +87,7 @@ impl PollQueue {
                 Ok(tasks) => tasks,
                 Err(e) => {
                     eprintln!("Couldn't lock tasks. {}", e);
-                    return Err(warp::reject::custom(BrokenPollQueue));
+                    return Ok(Response::new(Full::new(Bytes::from("Broken Poll Queue"))));
                 }
             };
 
@@ -61,14 +95,14 @@ impl PollQueue {
                 //If there are tasks, send them in the return
                 let reply: String = format!("Here are some tasks from {:?}", dt);
                 eprintln!("NOT IMPLEMENTED YET");
-                return Ok(warp::reply::json(&reply));
+                return Ok(Response::new(Full::new(Bytes::from("Didn't handle tasks"))));
             } else {
                 //Otherwise, determine wait for tasks until a newer poll comes along.
                 let mut waiter = match self.waiter.lock() {
                     Ok(waiter) => waiter,
                     Err(e) => {
                         eprintln!("Couldn't lock mutex! {}", e);
-                        return Err(warp::reject::custom(BrokenPollQueue));
+                        return Ok(Response::new(Full::new(Bytes::from("Broken Poll Queue"))));
                     }
                 };
 
@@ -83,7 +117,7 @@ impl PollQueue {
                 } else {
                     let reply: String = format!("{:?} won't wait anymore.", dt);
                     eprintln!("NOT IMPLEMENTED YET");
-                    return Ok(warp::reply::json(&reply));
+                    return Ok(Response::new(Full::new(Bytes::from("Quit waiting"))));
                 }
             }
         }
@@ -91,13 +125,23 @@ impl PollQueue {
 
     pub(crate) async fn handle_poll(
         queue_arc: Arc<PollQueue>,
-        body: String,
-    ) -> Result<impl warp::Reply, warp::Rejection> {
-        println!("Received: {:?}", body);
-        let events: ShimEventPackage = match serde_json::from_str(&body) {
+        request: Request<hyper::body::Incoming>,
+    ) -> Result<Response<Full<Bytes>>, hyper::Error> {
+        let method = request.method().clone();
+        let path = request.uri().path().to_string();
+        let headers = request.headers().clone();
+        let as_string = String::from_utf8(request.collect().await?.to_bytes().to_vec())
+            .expect("Couldn't parse bytes.");
+
+        println!(
+            "Received: {}, {}, {:?}, {}",
+            method, path, headers, as_string
+        );
+
+        let events: ShimEventPackage = match serde_json::from_str(&as_string) {
             Ok(event) => event,
-            Err(_) => {
-                return Err(warp::reject::custom(InvalidJSON));
+            Err(e) => {
+                return Ok(Response::new(Full::new(Bytes::from("Invalid JSON"))));
             }
         };
 

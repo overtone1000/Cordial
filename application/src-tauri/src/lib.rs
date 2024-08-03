@@ -1,43 +1,47 @@
 use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 
+use hyper::{server::conn::http1, service::service_fn, Request};
+use hyper_util::rt::{TokioIo, TokioTimer};
 use server::poll_queue::PollQueue;
-use warp::Filter;
+use tokio::net::TcpListener;
 
 const SHIM_ADDRESS: u16 = 43528;
 
 pub mod server;
 pub mod shim_api;
 
-pub async fn tokio_serve<'a>(poll_queue_arc: Arc<PollQueue>) {
-    // GET /hello/warp => 200 OK with body "Hello, warp!"
+pub async fn tokio_serve<'a>() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("Building server");
 
-    let hello_handler = |name| {
-        println!("Responding...");
-        format!("Hello, {}!", name)
-    };
+    let pollqueue = PollQueue::new();
 
-    let pollqueue_arc = Arc::new(PollQueue::new());
-    
-    let shim_event_handler = move |body: String| PollQueue::handle_poll(pollqueue_arc.clone(), body);
-
-    let shim_route = warp::post()
-        .and(warp::path("shim"))
-        .and(warp::path::end())
-        .and(warp::body::json())
-        .and_then(shim_event_handler);
-
-    let hello_route = warp::path!("hello" / String).map(hello_handler);
-
-    let routes = shim_route.or(hello_route);
+    //address is "shim"
 
     let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), SHIM_ADDRESS);
 
-    println!("Starting server");
-    warp::serve(routes).run(socket).await;
+    let listener = TcpListener::bind(socket).await?;
+
+    loop {
+        let (tcp, _) = listener.accept().await?;
+
+        let io = TokioIo::new(tcp);
+        let clone = pollqueue.clone();
+
+        tokio::task::spawn(async move {
+            // Handle the connection from the client using HTTP1 and pass any
+            // HTTP requests received on that connection to the `hello` function
+            if let Err(err) = http1::Builder::new()
+                .timer(TokioTimer::new())
+                .serve_connection(io, clone)
+                .await
+            {
+                println!("Error serving connection: {:?}", err);
+            }
+        });
+    }
 }
 
 pub fn tauri_start() {

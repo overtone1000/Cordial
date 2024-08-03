@@ -9,10 +9,9 @@ async fn main() {
 
     tauri::async_runtime::set(tokio::runtime::Handle::current()); //Manually manage the tokio asynchronous runtime
 
-    let poll_queue_arc = std::sync::Arc::new(PollQueue::new());
     {
         println!("Spawning server");
-        tokio::spawn(app::tokio_serve(poll_queue_arc));
+        tokio::spawn(app::tokio_serve());
 
         println!("Creating interface");
         app::tauri_start();
