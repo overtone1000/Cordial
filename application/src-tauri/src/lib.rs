@@ -3,7 +3,12 @@ use std::{
     sync::Arc,
 };
 
-use hyper::{server::conn::http1, service::service_fn, Request};
+use hyper::{
+    body::Incoming,
+    server::conn::http1,
+    service::{service_fn, Service},
+    Request,
+};
 use hyper_util::rt::{TokioIo, TokioTimer};
 use server::poll_queue::PollQueue;
 use tokio::net::TcpListener;
@@ -32,6 +37,34 @@ pub async fn tokio_serve<'a>() -> Result<(), Box<dyn std::error::Error + Send + 
         //Need to spawn these as separate tasks...
         let io = TokioIo::new(tcp);
         let clone = pollqueue.clone();
+
+        tokio::task::spawn(async move {
+            // Handle the connection from the client using HTTP1 and pass any
+            // HTTP requests received on that connection to the `hello` function
+            if let Err(err) = http1::Builder::new()
+                .timer(TokioTimer::new())
+                .serve_connection(io, clone)
+                .await
+            {
+                println!("Error serving connection: {:?}", err);
+            }
+        });
+    }
+}
+
+pub async fn serve<T>(
+    listener: TcpListener,
+    service: T,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+where
+    T: Service<Request<Incoming>>,
+{
+    loop {
+        let (tcp_stream, _) = listener.accept().await?;
+
+        //Need to spawn these as separate tasks...
+        let io = TokioIo::new(tcp_stream);
+        let clone = service.clone();
 
         tokio::task::spawn(async move {
             // Handle the connection from the client using HTTP1 and pass any
