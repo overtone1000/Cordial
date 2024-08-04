@@ -36,6 +36,18 @@
 			"problemMatcher": [],
 			"label": "Tauri: Dev (Win)",
 			"detail": "Start Tauri app development for Windows"
-		}	
+		},
+		{
+			"type": "npm",
+			"script": "tauri-dev-nix",
+			"path": "application",
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": [],
+			"label": "Tauri: Dev (Nix)",
+			"detail": "Start Tauri app development for NixOS"
+		}		
 	]
 }
