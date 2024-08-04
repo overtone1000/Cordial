@@ -6,6 +6,7 @@ Custom Intellispace Plugin
 - Tauri
     - SvelteKit
     - Rust
+- Nix Environment Selector is required to work on Nix
 
 ## Components
 

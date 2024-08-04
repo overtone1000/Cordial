@@ -8,9 +8,8 @@ stdenv.mkDerivation {
         openssl 
         glib 
         gtk3 
-        libsoup 
-        #webkitgtk
-        webkitgtk-2.38.3
+        libsoup_3
+        webkitgtk_4_1
         appimagekit 
     ];
 }
