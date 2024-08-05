@@ -6,11 +6,11 @@ use std::{
 use hyper::{
     body::Incoming,
     server::conn::http1,
-    service::{service_fn, Service},
+    service::{service_fn, HttpService, Service},
     Request,
 };
 use hyper_util::rt::{TokioIo, TokioTimer};
-use server::poll_queue::PollQueue;
+use server::poll_handler::PollHandler;
 use tokio::net::TcpListener;
 
 const SHIM_EVENT_PORT: u16 = 43528;
@@ -22,7 +22,7 @@ pub mod shim_api;
 pub async fn tokio_serve<'a>() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("Building server");
 
-    let pollqueue = PollQueue::new();
+    let pollqueue = PollHandler::new();
 
     let event_socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), SHIM_EVENT_PORT);
     let call_socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), SHIM_CALL_PORT);
@@ -37,34 +37,6 @@ pub async fn tokio_serve<'a>() -> Result<(), Box<dyn std::error::Error + Send + 
         //Need to spawn these as separate tasks...
         let io = TokioIo::new(tcp);
         let clone = pollqueue.clone();
-
-        tokio::task::spawn(async move {
-            // Handle the connection from the client using HTTP1 and pass any
-            // HTTP requests received on that connection to the `hello` function
-            if let Err(err) = http1::Builder::new()
-                .timer(TokioTimer::new())
-                .serve_connection(io, clone)
-                .await
-            {
-                println!("Error serving connection: {:?}", err);
-            }
-        });
-    }
-}
-
-pub async fn serve<T>(
-    listener: TcpListener,
-    service: T,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
-where
-    T: Service<Request<Incoming>>,
-{
-    loop {
-        let (tcp_stream, _) = listener.accept().await?;
-
-        //Need to spawn these as separate tasks...
-        let io = TokioIo::new(tcp_stream);
-        let clone = service.clone();
 
         tokio::task::spawn(async move {
             // Handle the connection from the client using HTTP1 and pass any

@@ -18,25 +18,24 @@ use std::{
 };
 
 #[derive(Clone)]
-pub struct PollQueue {
-    waiter: Arc<Mutex<Option<Instant>>>,
+pub struct PollHandler {
     tasks: Arc<Mutex<VecDeque<ShimFunction>>>,
 }
 
-impl Service<Request<Incoming>> for PollQueue {
+impl Service<Request<Incoming>> for PollHandler {
     type Response = Response<Full<Bytes>>;
     type Error = hyper::Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn call(&self, request: Request<Incoming>) -> Self::Future {
-        let result = Self::handle_call(self.clone(), request);
+        let result = Self::handle_event(self.clone(), request);
         Box::pin(result)
     }
 }
 
-impl PollQueue {
-    async fn handle_call(
-        self: PollQueue,
+impl PollHandler {
+    async fn handle_event(
+        self: PollHandler,
         request: Request<Incoming>,
     ) -> Result<Response<Full<Bytes>>, hyper::Error> {
         let method = request.method().clone();
@@ -63,17 +62,16 @@ impl PollQueue {
             self.process_event(event);
         }
 
-        self.get_poll_response()
+        self.handle_call_poll()
     }
 
-    pub fn new() -> PollQueue {
-        PollQueue {
-            waiter: Arc::new(Mutex::new(None)),
+    pub fn new() -> PollHandler {
+        PollHandler {
             tasks: Arc::new(Mutex::new(VecDeque::new())),
         }
     }
 
-    fn process_event(&self, event: ShimEvent) {
+    fn process_event(&self, event: ShimEvent) -> Result<(),String> {
         println!("Processing event {:?}", event);
         match event {
             ShimEvent::Poll => println!("Shim heartbeat"),
@@ -82,11 +80,11 @@ impl PollQueue {
                 println!("Shelf loaded:{} {}", canvas_page_id, shelf_id)
             }
         };
+
+        Ok(())
     }
 
-    fn get_poll_response(&self) -> Result<Response<Full<Bytes>>, hyper::Error> {
-        let dt = std::time::Instant::now();
-        println!("Processing poll response at {:?}", dt);
+    fn handle_call_poll(&self) -> Result<Response<Full<Bytes>>, hyper::Error> {
 
         let mut debug_out_waiting = false;
         loop {
@@ -101,41 +99,18 @@ impl PollQueue {
 
             if !tasks.is_empty() {
                 //If there are tasks, send them in the return
-                let reply: String = format!("Here are some tasks from {:?}", dt);
                 eprintln!("NOT IMPLEMENTED YET");
                 return Ok(Response::new(Full::new(Bytes::from("Didn't handle tasks"))));
-            } else {
-                //Otherwise, determine wait for tasks until a newer poll comes along.
-                let mut waiter = match self.waiter.lock() {
-                    Ok(waiter) => waiter,
-                    Err(e) => {
-                        eprintln!("Couldn't lock mutex! {}", e);
-                        return Ok(Response::new(Full::new(Bytes::from("Broken Poll Queue"))));
-                    }
-                };
-
-                let this_thread_is_the_waiter: bool = match waiter.as_mut() {
-                    Some(waiter) => *waiter <= dt,
-                    None => true,
-                };
-
-                if this_thread_is_the_waiter {
-                    *waiter = Some(dt);
-                    if !debug_out_waiting {
-                        println!("This thread is the waiter. {:?}", dt);
-                        debug_out_waiting = true;
-                    }
-                } else {
-                    let reply: String = format!("{:?} won't wait anymore.", dt);
-                    eprintln!("NOT IMPLEMENTED YET");
-                    return Ok(Response::new(Full::new(Bytes::from("Quit waiting"))));
-                }
+            }
+            else
+            {
+                eprintln!("Need to wait here");
             }
         }
     }
 
-    pub(crate) async fn handle_poll(
-        queue_arc: Arc<PollQueue>,
+    pub(crate) async fn handle_event_poll(
+        queue_arc: Arc<PollHandler>,
         request: Request<hyper::body::Incoming>,
     ) -> Result<Response<Full<Bytes>>, hyper::Error> {
         let method = request.method().clone();
@@ -158,9 +133,13 @@ impl PollQueue {
 
         println!("Deserialized: {:?}", events);
         for event in events {
-            queue_arc.process_event(event);
+            match queue_arc.process_event(event)
+            {
+                Ok(_)=>(),
+                Err(e)=>{eprintln!("Need to handle the rest of the events but notify user of error state");}
+            }
         }
 
-        queue_arc.get_poll_response()
+        return Ok(Response::new(Full::new(Bytes::from("Ok"))));
     }
 }

@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use app::server::poll_queue::PollQueue;
+use app::server::poll_handler::PollHandler;
 
 #[tokio::main]
 async fn main() {
