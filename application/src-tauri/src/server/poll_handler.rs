@@ -34,6 +34,7 @@ impl Service<Request<Incoming>> for PollHandler {
 }
 
 impl PollHandler {
+
     async fn handle_event(
         self: PollHandler,
         request: Request<Incoming>,
