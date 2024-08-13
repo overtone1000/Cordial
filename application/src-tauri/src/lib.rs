@@ -1,10 +1,11 @@
 use std::{
+    error::Error,
     net::{IpAddr, Ipv4Addr, SocketAddr},
     sync::Arc,
 };
 
 use hyper::{
-    body::Incoming,
+    body::{Body, Incoming},
     server::conn::http1,
     service::{service_fn, HttpService, Service},
     Request,
@@ -12,6 +13,8 @@ use hyper::{
 use hyper_util::rt::{TokioIo, TokioTimer};
 use server::poll_handler::PollHandler;
 use tokio::net::TcpListener;
+
+use serde::ser::StdError;
 
 const SHIM_EVENT_PORT: u16 = 43528;
 const SHIM_CALL_PORT: u16 = 43529;
@@ -24,15 +27,31 @@ pub async fn tokio_serve<'a>() -> Result<(), Box<dyn std::error::Error + Send + 
 
     let pollqueue = PollHandler::new();
 
-    let event_socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), SHIM_EVENT_PORT);
-    let call_socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), SHIM_CALL_PORT);
+    let call_server = create_server(IpAddr::V4(Ipv4Addr::LOCALHOST), SHIM_EVENT_PORT, &pollqueue);
+    let event_server = create_server(IpAddr::V4(Ipv4Addr::LOCALHOST), SHIM_CALL_PORT, &pollqueue);
 
-    let event_listener = TcpListener::bind(event_socket).await?;
-    let call_listener = TcpListener::bind(call_socket).await?;
+    call_server.await?;
+    event_server.await?;
+
+    Ok(())
+}
+
+async fn create_server<S>(
+    ip: IpAddr,
+    port: u16,
+    service: S,
+) -> Result<TcpListener, Box<dyn std::error::Error + Send + Sync>>
+where
+    S: HttpService<Incoming>,
+    S::Error: Into<Box<dyn StdError + Send + Sync>>,
+    S::ResBody: 'static,
+    <S::ResBody as Body>::Error: Into<Box<dyn StdError + Send + Sync>>,
+{
+    let socket = SocketAddr::new(ip, port);
+    let listener = TcpListener::bind(socket).await?;
 
     loop {
-        let (event_tcp_stream, _) = event_listener.accept().await?;
-        let (call_tcp_stream, _) = call_listener.accept().await?;
+        let (event_tcp_stream, _) = listener.accept().await?;
 
         //Need to spawn these as separate tasks...
         let io = TokioIo::new(tcp);
