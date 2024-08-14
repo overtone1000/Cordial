@@ -1,10 +1,39 @@
 <script lang="ts">
 	import { mdiThemeLightDark } from '@mdi/js';
 	import IconButton, { Icon } from '@smui/icon-button';
+	import Button from '@smui/button';
+	import { invoke } from '@tauri-apps/api';
+	import type { InvokeArgs } from '@tauri-apps/api/tauri';
 
 	const light_css = '/smui.css';
 	const dark_css = '/smui-dark.css';
 	let dark_mode: boolean | undefined = undefined;
+
+	type Interaction = DebugInteraction;
+	interface DebugInteraction {
+		debug: string;
+	}
+
+	interface InteractionArgument extends InvokeArgs {
+		interaction: Interaction;
+	}
+
+	let tauriInteraction = (arg: InteractionArgument) => {
+		console.debug('Sending tauri interaction', arg);
+		invoke('tauri_ui_interaction', arg)
+			.then((res: any) => {
+				console.log('tauri_ui_interaction: ', res);
+			})
+			.catch((e: any) => console.error('tauri_ui_interaction', e));
+	};
+
+	let tauriDebug = (message: string) => {
+		tauriInteraction({
+			interaction: {
+				debug: message
+			}
+		});
+	};
 </script>
 
 <svelte:head>
@@ -34,7 +63,13 @@
 			</IconButton>
 		</div>
 	</div>
-	<div class="page">Contents</div>
+	<div class="page">
+		<Button
+			on:click={() => {
+				tauriDebug('Test Debug');
+			}}>Test Debug</Button
+		>
+	</div>
 </div>
 
 <style>
