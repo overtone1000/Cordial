@@ -2,8 +2,8 @@
 	import { mdiThemeLightDark } from '@mdi/js';
 	import IconButton, { Icon } from '@smui/icon-button';
 	import Button from '@smui/button';
-	import { invoke } from '@tauri-apps/api';
-	import type { InvokeArgs } from '@tauri-apps/api/tauri';
+	import { invoke } from '@tauri-apps/api/core';
+	import type { InvokeArgs } from '@tauri-apps/api/core';
 
 	const light_css = '/smui.css';
 	const dark_css = '/smui-dark.css';
