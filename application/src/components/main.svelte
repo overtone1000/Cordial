@@ -3,7 +3,6 @@
 	import IconButton, { Icon } from '@smui/icon-button';
 	import Button from '@smui/button';
 	import { invoke } from '@tauri-apps/api/core';
-	import type { InvokeArgs } from '@tauri-apps/api/core';
 
 	const light_css = '/smui.css';
 	const dark_css = '/smui-dark.css';
@@ -11,10 +10,10 @@
 
 	type Interaction = DebugInteraction;
 	interface DebugInteraction {
-		debug: string;
+		Debug: string;
 	}
 
-	interface InteractionArgument extends InvokeArgs {
+	interface InteractionArgument extends Record<string,unknown> { //Has to match InvokeArgs
 		interaction: Interaction;
 	}
 
@@ -30,7 +29,7 @@
 	let tauriDebug = (message: string) => {
 		tauriInteraction({
 			interaction: {
-				debug: message
+				Debug: message
 			}
 		});
 	};
