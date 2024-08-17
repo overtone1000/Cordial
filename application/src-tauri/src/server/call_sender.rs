@@ -5,9 +5,6 @@ use hyper::{
     Request, Response,
 };
 
-use crate::shim_api::
-    shim_interface::ShimFunction
-;
 use std::{
     collections::VecDeque,
     future::Future,
@@ -15,9 +12,11 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use crate::shim_api::calls::ShimCall;
+
 #[derive(Clone)]
 pub struct CallSender {
-    tasks: Arc<Mutex<VecDeque<ShimFunction>>>,
+    tasks: Arc<Mutex<VecDeque<ShimCall>>>,
 }
 
 impl Service<Request<Incoming>> for CallSender {
@@ -58,7 +57,7 @@ impl CallSender {
             //Put this in its own block so self.tasks mutex gets released before yielding
             {
                 //Fetch the tasks that need to be sent in the response
-                let tasks = match self.tasks.lock() {
+                let mut tasks = match self.tasks.lock() {
                     Ok(tasks) => tasks,
                     Err(e) => {
                         eprintln!("Couldn't lock tasks. {}", e);
@@ -68,13 +67,37 @@ impl CallSender {
 
                 if !tasks.is_empty() {
                     //If there are tasks, send them in the return
-                    eprintln!("NOT IMPLEMENTED YET");
-                    return Ok(Response::new(Full::new(Bytes::from("Didn't handle tasks"))));
+                    let mut collected:Vec<ShimCall> = Vec::new();
+                    while !tasks.is_empty()
+                    {
+                        collected.push(tasks.pop_front().expect("Not empty, should be some."));
+                    }
+                    let as_str=serde_json::to_string(&collected);
+                    match as_str
+                    {
+                        Ok(as_str)=>{
+                            return Ok(Response::new(Full::new(Bytes::from(as_str))));
+                        },
+                        Err(e)=>{
+                            eprintln!("Couldn't serialize requests. {:?}",e);
+                        }
+                    }
                 }
             }
 
             //Now yield
             tokio::task::yield_now().await;
+        }
+    }
+
+    pub(crate) fn make_call(&self, call:ShimCall)
+    {
+        match self.tasks.lock()
+        {
+            Ok(mut tasks) => {
+                tasks.push_back(call);
+            },
+            Err(e) => eprintln!("Couldn't lock tasks.{:?}",e),
         }
     }
 }

@@ -23,31 +23,48 @@
 //SiteId is unfortunately blank
 //IsNIAMRExam is a yes no field of some kind
 
-var ACCESSION_FIELD = "x00080050";
-var MRN_FIELD = "x00100020";
-var STUDYDTTM_FIELD = "StudyDTTM";
+import { Shim_Debug } from "./shim_event_sender";
 
-function QueryMRN(mrn) {
-    var str = MRN_FIELD + " = \"" + mrn + "\"";
-    RadiologyQuery(str);
+
+
+type QueryType = "INTERPRETATION" | "LOOKUP" | "EXCEPTION" | "REFERRING";
+
+export interface Query
+{
+    query_string:string,
+    query_type:QueryType,
+    max_results:number //1000000 is the max result
 }
+
 
 //Probably the best way to handle multiple sites.
-function Query(mrn:string, accession:string) {
-    var str;
-    if (mrn !== undefined && mrn !== null && mrn !== "")
-        str = "x00080050 = \"" + accession + "\" AND x00100020 = \"" + mrn + "\"";
-    else
-        str = "x00080050 = \"" + accession + "\"";
-    RadiologyQuery(str);
-}
+/*
+function Query(data:QueryData) : void {
 
+    if (data.mrn === undefined && data.accession == undefined)
+    {
+        Shim_Debug("Empty query.");
+        return;
+    }
+    var str;
+    if (data.mrn !== undefined && data.mrn !== null && data.mrn !== "")
+        str = "x00080050 = \"" + data.accession + "\" AND x00100020 = \"" + data.mrn + "\"";
+    else
+        str = "x00080050 = \"" + data.accession + "\"";
+    
+    data.result=RadiologyQuery(str, data.query_type);
+}
+*/
 //From PS360 plugin, should refactor
-function RadiologyQuery(query:string) {
+export function RadiologyQuery(
+    query:Query,
+    //query:string, 
+    //query_type:QueryType, 
+    //max_results:number 
+    ) : string {
     Shim_Debug("Query string: " + query);
 
-    var examNode = null;
-    var queryResults = Radiology.Query(query, "INTERPRETATION", 1);
+    var queryResults = Radiology.Query(query.query_string, query.query_type, query.max_results);
     if (queryResults === "") {
         var error = Radiology.GetLastErrorCode();
         Shim_Debug("Radiology error: " + error);
@@ -55,5 +72,6 @@ function RadiologyQuery(query:string) {
     else {
         Shim_Debug("Got query response:" + JSON.stringify(queryResults));
     }
-    return examNode;
+
+    return queryResults;
 }

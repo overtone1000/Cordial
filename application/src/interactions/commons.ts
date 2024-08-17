@@ -1,7 +1,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import type { DebugInteraction } from './debug';
+import type { TestInteraction } from './test';
 
-type Interaction = DebugInteraction;
+type Interaction = DebugInteraction | TestInteraction;
 
 interface InteractionArgument extends Record<string,unknown> { //Has to match InvokeArgs
     interaction: Interaction;

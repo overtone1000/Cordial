@@ -17,7 +17,7 @@
 
 function Radiology_EventLogout() {
     Send_Event(
-        context_event_logout,
+        "logout",
         ""
     );
 }
@@ -37,7 +37,7 @@ function Radiology_EventPageStatus(
         visible: visible
     };
     Send_Event(
-        context_event_pagestatus,
+        "pagestatus",
         JSON.stringify(body)
     );
 }

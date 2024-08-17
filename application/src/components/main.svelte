@@ -4,6 +4,7 @@
 	import IconButton, { Icon } from '@smui/icon-button';
 	import Button from '@smui/button';
 	import { tauriDebug } from '../interactions/debug';
+	import { runTest } from '../interactions/test';
 	
 	const light_css = '/smui.css';
 	const dark_css = '/smui-dark.css';
@@ -41,7 +42,7 @@
 	<div class="page">
 		<Button
 			on:click={() => {
-				tauriDebug('Test Debug');
+				runTest(0);
 			}}>Test Debug</Button
 		>
 	</div>

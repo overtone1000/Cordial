@@ -1,16 +1,15 @@
 use serde::{Deserialize, Serialize};
 
-use super::commons::{CanvasPageID, ShelfID};
+use super::{commons::{CanvasPageID, ShelfID}, query::ShimQuery};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub(crate) enum ShimEvent {
-    Poll,
     Debug(String),
-    RadiologyEventShelfLoaded(CanvasPageID, ShelfID),
+    PageStatus(CanvasPageID, ShelfID), //RadiologyEventShelfLoaded
+    Logout(String),
+    QueryResult(ShimQuery)
 }
-
-pub(crate) type ShimEventPackage = Vec<ShimEvent>;
 
 #[cfg(test)]
 mod tests {
@@ -20,9 +19,8 @@ mod tests {
     #[test]
     fn test_event_package_serialization() {
         test_serialization(vec![
-            ShimEvent::Poll,
             ShimEvent::Debug("Testing debug.".to_string()),
-            ShimEvent::RadiologyEventShelfLoaded(
+            ShimEvent::PageStatus(
                 "TestCanvasID".to_string(),
                 "TestShelfID".to_string(),
             )

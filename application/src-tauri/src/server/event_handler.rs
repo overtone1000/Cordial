@@ -6,7 +6,7 @@ use hyper::{
 };
 
 use crate::shim_api::
-    shim_events::{ShimEvent, ShimEventPackage}
+    events::ShimEvent
 ;
 use std::{
     future::Future,
@@ -48,22 +48,20 @@ impl EventHandler {
             method, path, headers, as_string
         );
 
-        let events: ShimEventPackage = match serde_json::from_str(&as_string) {
-            Ok(event) => event,
+        match serde_json::from_str(&as_string) {
+            Ok(event) => {
+                match self.process_event(event) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!("Error processing event.{:?}, {:?}", e, as_string)
+                    }
+                }
+            },
             Err(_e) => {
+                eprintln!("Error getting event from string. {:?}",&as_string);
                 return Ok(Response::new(Full::new(Bytes::from("Invalid JSON"))));
             }
         };
-
-        println!("Deserialized: {:?}", events);
-        for event in events {
-            match self.process_event(event) {
-                Ok(_) => (),
-                Err(e) => {
-                    eprintln!("Error processing event.{:?}, {:?}", e, as_string)
-                }
-            }
-        }
 
         return Ok(Response::new(Full::new(Bytes::from("Ok"))));
     }
@@ -71,10 +69,15 @@ impl EventHandler {
     fn process_event(&self, event: ShimEvent) -> Result<(), String> {
         println!("Processing event {:?}", event);
         match event {
-            ShimEvent::Poll => println!("Shim heartbeat"),
             ShimEvent::Debug(message) => println!("Debug message from shim: {}", message),
-            ShimEvent::RadiologyEventShelfLoaded(canvas_page_id, shelf_id) => {
+            ShimEvent::PageStatus(canvas_page_id, shelf_id) => {
                 println!("Shelf loaded:{} {}", canvas_page_id, shelf_id)
+            },
+            ShimEvent::QueryResult(result)=>{
+                println!("Query result::{:?}",result);
+            },
+            ShimEvent::Logout(_)=>{
+                println!("Logout.");
             }
         };
 
