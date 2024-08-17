@@ -1,4 +1,4 @@
-use server::{event_handler::EventHandler, commons::spawn_server, call_sender::CallSender};
+use server::{call_sender::CallSender, commons::spawn_server, event_handler::EventHandler};
 use std::net::{IpAddr, Ipv4Addr};
 
 const SHIM_EVENT_PORT: u16 = 43528;
@@ -9,11 +9,11 @@ pub mod shim_api;
 pub mod tauri;
 
 pub async fn tokio_serve<'a>(
-    call_handler: EventHandler,
+    call_handler: CallSender,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("Building server");
 
-    let event_handler = CallSender::new();
+    let event_handler = EventHandler::new();
     let event_server = spawn_server(
         IpAddr::V4(Ipv4Addr::LOCALHOST),
         SHIM_EVENT_PORT,
@@ -31,7 +31,7 @@ pub async fn tokio_serve<'a>(
     Ok(())
 }
 
-pub fn tauri_start(event_handler: EventHandler) {
+pub fn tauri_start(event_handler: CallSender) {
     println!("Starting Tauri Interface");
     ::tauri::Builder::default()
         .manage(event_handler)

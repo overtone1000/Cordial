@@ -10,7 +10,7 @@ pub enum Interaction {
 #[tauri::command]
 pub async fn tauri_ui_interaction(
     interaction: Interaction,
-    event_handler: ::tauri::State<'_, CallSender>,
+    call_sender: ::tauri::State<'_, CallSender>,
 ) -> Result<(), String> {
     println!("Interaction:{:?}", interaction);
     match interaction {
