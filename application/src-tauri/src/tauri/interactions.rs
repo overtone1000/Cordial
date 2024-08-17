@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::server::event_handler::CallHandler;
+use crate::server::call_sender::CallSender;
 
 #[derive(Deserialize, Debug)]
 pub enum Interaction {
@@ -10,7 +10,7 @@ pub enum Interaction {
 #[tauri::command]
 pub async fn tauri_ui_interaction(
     interaction: Interaction,
-    call_handler: ::tauri::State<'_, CallHandler>,
+    event_handler: ::tauri::State<'_, CallSender>,
 ) -> Result<(), String> {
     println!("Interaction:{:?}", interaction);
     match interaction {

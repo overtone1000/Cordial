@@ -1,29 +1,22 @@
 use http_body_util::{BodyExt, Full};
 use hyper::{
-    body::{self, Bytes, Incoming},
+    body::{Bytes, Incoming},
     service::Service,
     Request, Response,
 };
 
-use crate::shim_api::{
-    shim_events::{ShimEvent, ShimEventPackage},
-    shim_interface::ShimFunction,
-};
+use crate::shim_api::
+    shim_events::{ShimEvent, ShimEventPackage}
+;
 use std::{
-    collections::VecDeque,
     future::Future,
-    net::IpAddr,
     pin::Pin,
-    sync::{Arc, Mutex},
-    time::{Duration, Instant},
 };
 
 #[derive(Clone)]
-pub struct CallHandler {
-    tasks: Arc<Mutex<VecDeque<ShimFunction>>>,
-}
+pub struct EventHandler {}
 
-impl Service<Request<Incoming>> for CallHandler {
+impl Service<Request<Incoming>> for EventHandler {
     type Response = Response<Full<Bytes>>;
     type Error = hyper::Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
@@ -34,15 +27,13 @@ impl Service<Request<Incoming>> for CallHandler {
     }
 }
 
-impl CallHandler {
-    pub fn new() -> CallHandler {
-        CallHandler {
-            tasks: Arc::new(Mutex::new(VecDeque::new())),
-        }
+impl EventHandler {
+    pub fn new() -> EventHandler {
+        EventHandler {}
     }
 
     async fn handle_poll(
-        self: CallHandler,
+        self: EventHandler,
         request: Request<Incoming>,
     ) -> Result<Response<Full<Bytes>>, hyper::Error> {
         let method = request.method().clone();
@@ -57,27 +48,36 @@ impl CallHandler {
             method, path, headers, as_string
         );
 
-        loop {
-            //Put this in its own block so self.tasks mutex gets released before yielding
-            {
-                //Fetch the tasks that need to be sent in the response
-                let tasks = match self.tasks.lock() {
-                    Ok(tasks) => tasks,
-                    Err(e) => {
-                        eprintln!("Couldn't lock tasks. {}", e);
-                        return Ok(Response::new(Full::new(Bytes::from("Broken Poll Queue"))));
-                    }
-                };
+        let events: ShimEventPackage = match serde_json::from_str(&as_string) {
+            Ok(event) => event,
+            Err(_e) => {
+                return Ok(Response::new(Full::new(Bytes::from("Invalid JSON"))));
+            }
+        };
 
-                if !tasks.is_empty() {
-                    //If there are tasks, send them in the return
-                    eprintln!("NOT IMPLEMENTED YET");
-                    return Ok(Response::new(Full::new(Bytes::from("Didn't handle tasks"))));
+        println!("Deserialized: {:?}", events);
+        for event in events {
+            match self.process_event(event) {
+                Ok(_) => (),
+                Err(e) => {
+                    eprintln!("Error processing event.{:?}, {:?}", e, as_string)
                 }
             }
-
-            //Now yield
-            tokio::task::yield_now().await;
         }
+
+        return Ok(Response::new(Full::new(Bytes::from("Ok"))));
+    }
+
+    fn process_event(&self, event: ShimEvent) -> Result<(), String> {
+        println!("Processing event {:?}", event);
+        match event {
+            ShimEvent::Poll => println!("Shim heartbeat"),
+            ShimEvent::Debug(message) => println!("Debug message from shim: {}", message),
+            ShimEvent::RadiologyEventShelfLoaded(canvas_page_id, shelf_id) => {
+                println!("Shelf loaded:{} {}", canvas_page_id, shelf_id)
+            }
+        };
+
+        Ok(())
     }
 }

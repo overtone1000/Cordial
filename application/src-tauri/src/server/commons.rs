@@ -1,20 +1,18 @@
 use std::{
-    error::Error,
     future::Future,
-    net::{IpAddr, Ipv4Addr, SocketAddr},
+    net::{IpAddr, SocketAddr},
     pin::Pin,
-    sync::Arc,
 };
 
 use http_body_util::Full;
 use hyper::{
-    body::{Body, Bytes, Incoming},
+    body::{Bytes, Incoming},
     server::conn::http1,
-    service::{service_fn, HttpService, Service},
+    service::Service,
     Request, Response,
 };
 use hyper_util::rt::{TokioIo, TokioTimer};
-use serde::ser::StdError;
+
 use tokio::net::TcpListener;
 
 pub(crate) async fn spawn_server<S>(

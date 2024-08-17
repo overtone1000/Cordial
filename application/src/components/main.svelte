@@ -1,38 +1,14 @@
 <script lang="ts">
+	
 	import { mdiThemeLightDark } from '@mdi/js';
 	import IconButton, { Icon } from '@smui/icon-button';
 	import Button from '@smui/button';
-	import { invoke } from '@tauri-apps/api/core';
-
+	import { tauriDebug } from '../interactions/debug';
+	
 	const light_css = '/smui.css';
 	const dark_css = '/smui-dark.css';
-	let dark_mode: boolean | undefined = undefined;
+	let dark_mode: boolean | undefined = undefined;	
 
-	type Interaction = DebugInteraction;
-	interface DebugInteraction {
-		Debug: string;
-	}
-
-	interface InteractionArgument extends Record<string,unknown> { //Has to match InvokeArgs
-		interaction: Interaction;
-	}
-
-	let tauriInteraction = (arg: InteractionArgument) => {
-		console.debug('Sending tauri interaction', arg);
-		invoke('tauri_ui_interaction', arg)
-			.then((res: any) => {
-				console.log('tauri_ui_interaction: ', res);
-			})
-			.catch((e: any) => console.error('tauri_ui_interaction', e));
-	};
-
-	let tauriDebug = (message: string) => {
-		tauriInteraction({
-			interaction: {
-				Debug: message
-			}
-		});
-	};
 </script>
 
 <svelte:head>
