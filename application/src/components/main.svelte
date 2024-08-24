@@ -1,14 +1,23 @@
 <script lang="ts">
 	
-	import { mdiThemeLightDark } from '@mdi/js';
+	import { mdiThemeLightDark, mdiMenu } from '@mdi/js';
 	import IconButton, { Icon } from '@smui/icon-button';
+	import Select, { Option } from '@smui/select';
 	import Button from '@smui/button';
-	import { tauriDebug } from '../interactions/debug';
 	import { runTest } from '../interactions/test';
 	
 	const light_css = '/smui.css';
 	const dark_css = '/smui-dark.css';
-	let dark_mode: boolean | undefined = undefined;	
+	let dark_mode: boolean | undefined = true;
+
+	let user:string = "User Name Here";
+
+	let rotation:string = "Rotation 3";
+	let rotations:string[] = [];
+	for (let n=0;n<20;n++)
+	{
+		rotations.push("Rotation " + n);
+	}
 
 </script>
 
@@ -26,15 +35,34 @@
 
 <div class="vp_fill">
 	<div class="top_menu">
-		<div class="top_menu_item"></div>
+		<div class="top_menu_item">
+			<IconButton on:click={() => {}}>
+				<Icon tag="svg" viewBox="0 0 24 24">
+					<path fill="primary" d={mdiMenu} />
+				</Icon>
+			</IconButton>
+		</div>
 		<div class="spacer"></div>
+		<div class="top_menu_item">
+			<i>{user}</i>
+		</div>
+		<div class="top_menu_item">
+			<Select
+				label="Rotation"
+				bind:value={rotation}
+				>
+				{#each rotations as rotation}
+					<Option value={rotation}>{rotation}</Option>
+				{/each}
+			</Select>
+		</div>
 		<div class="top_menu_item">
 			<IconButton on:click={() => (dark_mode = !dark_mode)} toggle pressed={dark_mode}>
 				<Icon tag="svg" viewBox="0 0 24 24" on>
-					<path fill="currentColor" d={mdiThemeLightDark} />
+					<path fill="primary" d={mdiThemeLightDark} />
 				</Icon>
 				<Icon tag="svg" viewBox="0 0 24 24">
-					<path fill="currentColor" d={mdiThemeLightDark} />
+					<path fill="primary" d={mdiThemeLightDark} />
 				</Icon>
 			</IconButton>
 		</div>
@@ -61,6 +89,12 @@
 	.top_menu {
 		display: flex;
 		flex-direction: row;
+	}
+	.top_menu_item
+	{
+		display:flex;
+		align-items:center;
+		height: 100%;
 	}
 	.page {
 		display: flex;
