@@ -1,5 +1,7 @@
 //These functions are called by isite to give the plugin information about isite's state changes
 
+import { Send_Event } from "./shim_event_sender";
+
 //When a user selects a menu item added with AddViewMenuItem
 //function Radiology_EventViewMenuSelected(menuitem, xmlContext) {
 //    //alert("Radiology_EventViewMenuSelected");    
@@ -17,8 +19,7 @@
 
 function Radiology_EventLogout() {
     Send_Event(
-        "logout",
-        ""
+        "logout"
     );
 }
 
@@ -31,14 +32,10 @@ function Radiology_EventPageStatus(
     nameOrID:string, //full path name of the page made visible
     type:"FOLDER"|"CANVS"|"API",
     visible:"TRUE"|"FALSE") {
-    var body = {
-        name_or_id: nameOrID,
-        type: type,
-        visible: visible
-    };
     Send_Event(
-        "pagestatus",
-        JSON.stringify(body)
+        {
+            page_status:[nameOrID,type,visible]
+        }
     );
 }
 

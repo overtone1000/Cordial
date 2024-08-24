@@ -24,7 +24,7 @@
 //IsNIAMRExam is a yes no field of some kind
 
 import { Shim_Debug } from "./shim_event_sender";
-
+import { Radiology } from "./init";
 
 
 type QueryType = "INTERPRETATION" | "LOOKUP" | "EXCEPTION" | "REFERRING";

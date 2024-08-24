@@ -11,12 +11,10 @@ interface DebugEvent {
     }
 }
 
-interface LogoutEvent {
-    logout:""
-}
+export type LogoutEvent = "logout";
 
-interface PageStatusEvent {
-    page_status: [string,string]
+export interface PageStatusEvent {
+    page_status: [string,"FOLDER"|"CANVS"|"API","TRUE"|"FALSE"]
 }
 
 export interface QueryResultEvent {
@@ -24,7 +22,7 @@ export interface QueryResultEvent {
     result: string
 }
 
-type ShimEvent = DebugEvent | LogoutEvent | PageStatusEvent | QueryResultEvent;
+export type ShimEvent = DebugEvent | LogoutEvent | PageStatusEvent | QueryResultEvent;
 
 //Sends events from iSite
 //Send asynchronously so iSite isn't blocked.

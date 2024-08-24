@@ -1,5 +1,7 @@
+import { Shim_Debug } from "./shim_event_sender.js";
+
 type Radiology_Interface = import ("./.d.ts").Radiology_Interface;
-declare var Radiology: Radiology_Interface;
+export declare var Radiology: Radiology_Interface;
 
 function OnLoad() {
     var user;
