@@ -1,6 +1,6 @@
 //These functions are called by isite to give the plugin information about isite's state changes
 
-import { Send_Event } from "./shim_event_sender";
+//import { Send_Event } from "./shim_event_sender"; //Typescript doesn't handle imports in a way that is comaptible with the target platform of Mozilla 4.
 
 //When a user selects a menu item added with AddViewMenuItem
 //function Radiology_EventViewMenuSelected(menuitem, xmlContext) {

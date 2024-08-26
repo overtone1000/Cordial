@@ -1,12 +1,10 @@
 {
-    "include": ["src/ts/*", "src/ts/**/*", "src/ts/.d.ts"],
-
+    "include": ["src/ts/shim.ts"],
+    
     "compilerOptions": {
       "target": "ES5", //Lowest possible target. Platform is Mozilla 4.
-      "moduleResolution": "Node10",
-      "isolatedModules": true,
+      "module": "None",
       "sourceMap": false, //Not suppored in Mozilla 4,
-      "outDir": "prod/js",
-      "noResolve": true
+      "outFile":"./prod/js/shim.js", //Doesn't work. Still uses module systems.
     }
   }

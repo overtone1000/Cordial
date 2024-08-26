@@ -23,13 +23,13 @@
 //SiteId is unfortunately blank
 //IsNIAMRExam is a yes no field of some kind
 
-import { Shim_Debug } from "./shim_event_sender";
-import { Radiology } from "./init";
+//import { Shim_Debug } from "./shim_event_sender"; //Typescript doesn't handle imports in a way that is comaptible with the target platform of Mozilla 4.
+//import { Radiology } from "./init"; //Typescript doesn't handle imports in a way that is comaptible with the target platform of Mozilla 4.
 
 
 type QueryType = "INTERPRETATION" | "LOOKUP" | "EXCEPTION" | "REFERRING";
 
-export interface Query
+interface Query
 {
     query_string:string,
     query_type:QueryType,
@@ -56,7 +56,7 @@ function Query(data:QueryData) : void {
 }
 */
 //From PS360 plugin, should refactor
-export function RadiologyQuery(
+function RadiologyQuery(
     query:Query,
     //query:string, 
     //query_type:QueryType, 

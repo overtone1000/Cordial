@@ -1,7 +1,7 @@
-import { Shim_Debug } from "./shim_event_sender.js";
+//import { Shim_Debug } from "./shim_event_sender.js"; //Typescript doesn't handle imports in a way that is comaptible with the target platform of Mozilla 4.
 
 type Radiology_Interface = import ("./.d.ts").Radiology_Interface;
-export declare var Radiology: Radiology_Interface;
+declare var Radiology: Radiology_Interface;
 
 function OnLoad() {
     var user;

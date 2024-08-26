@@ -1,4 +1,4 @@
-import { Query } from "./query";
+//import { Query } from "./query"; //Typescript doesn't handle imports in a way that is comaptible with the target platform of Mozilla 4.
 
 var event_url = "http://localhost:43528/";
 
@@ -11,22 +11,22 @@ interface DebugEvent {
     }
 }
 
-export type LogoutEvent = "logout";
+type LogoutEvent = "logout";
 
-export interface PageStatusEvent {
+interface PageStatusEvent {
     page_status: [string,"FOLDER"|"CANVS"|"API","TRUE"|"FALSE"]
 }
 
-export interface QueryResultEvent {
+interface QueryResultEvent {
     query: Query
     result: string
 }
 
-export type ShimEvent = DebugEvent | LogoutEvent | PageStatusEvent | QueryResultEvent;
+type ShimEvent = DebugEvent | LogoutEvent | PageStatusEvent | QueryResultEvent;
 
 //Sends events from iSite
 //Send asynchronously so iSite isn't blocked.
-export function Send_Event(event: ShimEvent) {
+function Send_Event(event: ShimEvent) {
     var xhr = new XMLHttpRequest();
 
     xhr.open("POST", event_url, true); //Trying true here, will see if it works...
@@ -36,7 +36,7 @@ export function Send_Event(event: ShimEvent) {
     return null;
 }
 
-export function Shim_Debug(debug_message:string, debug_object?:{}): void {
+function Shim_Debug(debug_message:string, debug_object?:{}): void {
     var debug_data = {
         message: debug_message,
         object: debug_object

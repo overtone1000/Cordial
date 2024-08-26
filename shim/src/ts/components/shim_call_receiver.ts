@@ -1,5 +1,5 @@
-import { Query, RadiologyQuery } from "./query";
-import { QueryResultEvent, Send_Event, Shim_Debug } from "./shim_event_sender";
+//import { Query, RadiologyQuery } from "./query"; //Typescript doesn't handle imports in a way that is comaptible with the target platform of Mozilla 4.
+//import { QueryResultEvent, Send_Event, Shim_Debug } from "./shim_event_sender"; //Typescript doesn't handle imports in a way that is comaptible with the target platform of Mozilla 4.
 
 var call_url = "http://localhost:43529/";
 interface QueryCall
