@@ -30,11 +30,11 @@ function Radiology_EventLogout() {
 //When user navigates to a folder page, API reports the full path of the visible folder, canvas, or API tab.
 function Radiology_EventPageStatus(
     nameOrID:string, //full path name of the page made visible
-    type:"FOLDER"|"CANVS"|"API",
+    type:"FOLDER"|"CANVAS"|"API",
     visible:"0"|"1") {
     Send_Post(
         {
-            page_status:[nameOrID,type,visible]
+            pagestatus:[nameOrID,type,visible]
         }
     );
 }

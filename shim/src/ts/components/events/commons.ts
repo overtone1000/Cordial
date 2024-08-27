@@ -11,7 +11,7 @@ interface DebugEvent {
 type LogoutEvent = "logout";
 
 interface PageStatusEvent {
-    page_status: [string,"FOLDER"|"CANVS"|"API","0"|"1"]
+    pagestatus: [string,"FOLDER"|"CANVAS"|"API","0"|"1"]
 }
 
 interface QueryResultEvent {

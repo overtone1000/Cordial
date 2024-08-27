@@ -78,7 +78,7 @@ impl EventHandler {
             ShimEvent::QueryResult(result)=>{
                 println!("Query result::{:?}",result);
             },
-            ShimEvent::Logout(_)=>{
+            ShimEvent::Logout=>{
                 println!("Logout.");
             }
         };
