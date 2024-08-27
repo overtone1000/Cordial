@@ -43,10 +43,12 @@ impl EventHandler {
         let as_string = String::from_utf8(request.collect().await?.to_bytes().to_vec())
             .expect("Couldn't parse bytes.");
 
+        /*
         println!(
             "Received: {}, {}, {:?}, {}",
             method, path, headers, as_string
         );
+        */
 
         match serde_json::from_str(&as_string) {
             Ok(event) => {
@@ -70,8 +72,8 @@ impl EventHandler {
         println!("Processing event {:?}", event);
         match event {
             ShimEvent::Debug(message) => println!("Debug message from shim: {}", message),
-            ShimEvent::PageStatus(canvas_page_id, shelf_id) => {
-                println!("Shelf loaded:{} {}", canvas_page_id, shelf_id)
+            ShimEvent::PageStatus(canvas_page_id, shelf_id,visible) => {
+                println!("Shelf loaded:{} {} {}", canvas_page_id, shelf_id, visible)
             },
             ShimEvent::QueryResult(result)=>{
                 println!("Query result::{:?}",result);

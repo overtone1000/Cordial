@@ -48,11 +48,13 @@ impl CallSender {
         let as_string = String::from_utf8(request.collect().await?.to_bytes().to_vec())
             .expect("Couldn't parse bytes.");
 
+        /*
         println!(
             "Received: {}, {}, {:?}, {}",
             method, path, headers, as_string
         );
-
+        */
+        
         loop {
             //Put this in its own block so self.tasks mutex gets released before yielding
             {
