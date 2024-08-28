@@ -8,7 +8,7 @@ pub(crate) enum ShimCall {
     Query(ShimQuery),
 }
 
-pub(crate) type ShimCallPackage = Vec<ShimCall>;
+//pub(crate) type ShimCallPackage = Vec<ShimCall>;
 
 #[cfg(test)]
 mod tests {

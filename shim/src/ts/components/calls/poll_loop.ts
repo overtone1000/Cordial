@@ -3,6 +3,9 @@
 
 //Starts looping polling to application
 //Send synchronously to await response (necessary for Mozilla v4) but call from setTime to avoid blocking
+
+var call_url = "http://localhost:43529/";
+
 function StartCallPolling() {
     setTimeout(Call_Poll);
 }
@@ -10,32 +13,44 @@ function StartCallPolling() {
 function Call_Poll() {
     Shim_Debug("Should add try - catch, or is that supported in this environment?");
 
-    var xhr = new XMLHttpRequest();
-
-    xhr.open("GET", call_url, false);
-    xhr.send();
-
-    var calls = JSON.parse(xhr.responseText) as [Call]; //Comes as an array of calls even if it's just one.
-
-    Shim_Debug("Using syntax here for (var call of calls) but will it work?");
-    for (var call of calls)
+    try
     {
-        switch (call.context)
-        {
-            case "query":
-                {
-                    //If call is a query, perform the isite query and send the reponse as an event
-                    var query = call.data as Query;
-                    var result = RadiologyQuery(query);
-                    var response:QueryResultEvent={
-                        query:query,
-                        result:result
-                    };
-                    Send_Post(response);
-                }
-        }
-    }
+        var xhr = new XMLHttpRequest();
 
-    //Send a new request.
-    setTimeout(Call_Poll);
+        xhr.open("GET", call_url, false);
+        xhr.send();
+        
+        var response_text = xhr.responseText;
+        Shim_Debug("Received response: " + response_text);
+        var calls = JSON.parse(response_text) as [Call]; //Comes as an array of calls even if it's just one.
+
+        Shim_Debug("Using syntax here for (var call of calls) but will it work?");
+        for (var call of calls)
+        {
+            Shim_Debug("Iterating calls");
+            switch (call.context)
+            {
+                case "query":
+                    {
+                        //If call is a query, perform the isite query and send the reponse as an event
+                        var query = call.data as Query;
+                        var result = RadiologyQuery(query);
+                        var response:QueryResultEvent={
+                            query:query,
+                            result:result
+                        };
+                        Shim_Debug("Responding to query with: " + JSON.stringify(response));
+                        Send_Event(response);
+                    }
+            }
+        }
+
+        Shim_Debug("Poll loop still happening too quickly. Disabled for now.");
+        //setTimeout(Call_Poll);
+    }
+    catch
+    {
+        //If polling fails, wait a bit before trying again
+        setTimeout(Call_Poll,5000);
+    }
 }

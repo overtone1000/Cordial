@@ -1,7 +1,5 @@
 //import { Query } from "./query"; //Typescript doesn't handle imports in a way that is comaptible with the target platform of Mozilla 4.
 
-var event_url = "http://localhost:43528/";
-
 type Context = "debug" | "logout" | "page_status" | "query_result";
 
 interface DebugEvent {

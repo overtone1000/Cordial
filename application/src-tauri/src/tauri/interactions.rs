@@ -1,3 +1,4 @@
+use hyper::service::Service;
 use serde::Deserialize;
 
 use crate::{server::call_sender::CallSender, shim_api::{calls::ShimCall, query::ShimQuery}};
@@ -5,7 +6,7 @@ use crate::{server::call_sender::CallSender, shim_api::{calls::ShimCall, query::
 #[derive(Deserialize, Debug)]
 pub enum Interaction {
     Debug(String),
-    Test(i64)
+    SpecificQuery(String,String)
 }
 
 #[tauri::command]
@@ -18,22 +19,14 @@ pub async fn tauri_ui_interaction(
         Interaction::Debug(message) => {
             println!("Debug: {}", message);
         },
-        Interaction::Test(index)=>{
-            match index
-            {
-                0=>{
-                    call_sender.make_call(
-                        ShimCall::Query(
-                            ShimQuery::by_mrn_and_accession(
-                                "MRN goes here",
-                                "Accession goes here"
-                            )
-                        )
-                    )
-                },
-                _=>{eprintln!("Invalid test index.");}
-            }
-        },
+        Interaction::SpecificQuery(mrn,accession)=>{
+            println!("Specific query: mrn: {}, accession: {}",mrn,accession);
+            call_sender.make_call(
+                ShimCall::Query(
+                    ShimQuery::by_mrn_and_accession(mrn.as_str(), accession.as_str())
+                )
+            )
+        }
     };
 
     Ok(())

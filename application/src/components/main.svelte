@@ -4,8 +4,9 @@
 	import IconButton, { Icon } from '@smui/icon-button';
 	import Select, { Option } from '@smui/select';
 	import Button from '@smui/button';
-	import { runTest } from '../interactions/test';
-	
+	import { tauriDebug } from '../interactions/debug';
+	import { specificQuery } from '../interactions/query_specific';
+		
 	const light_css = '/smui.css';
 	const dark_css = '/smui-dark.css';
 	let dark_mode: boolean | undefined = true;
@@ -70,8 +71,14 @@
 	<div class="page">
 		<Button
 			on:click={() => {
-				runTest(0);
+				tauriDebug("Debug test");
 			}}>Test Debug</Button
+		>
+		<Button
+			on:click={() => {
+				//specificQuery("2150241","2103TEST"); //this should pull up a 7/26/22 CR for "TEST,DUMMY"
+				specificQuery("FOO","BAR"); //this is intentionally nonsensical
+			}}>Test Specific Query</Button
 		>
 	</div>
 </div>

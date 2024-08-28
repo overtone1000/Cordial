@@ -41,6 +41,9 @@ impl CallSender {
         self: CallSender,
         request: Request<Incoming>,
     ) -> Result<Response<Full<Bytes>>, hyper::Error> {
+        
+        println!("Received poll request.");
+
         let method = request.method().clone();
         let path = request.uri().path().to_string();
         let headers = request.headers().clone();
@@ -50,7 +53,7 @@ impl CallSender {
 
         /*
         println!(
-            "Received: {}, {}, {:?}, {}",
+            "Received request on poll server loop: {}, {}, {:?}, {}",
             method, path, headers, as_string
         );
         */
@@ -58,33 +61,36 @@ impl CallSender {
         loop {
             //Put this in its own block so self.tasks mutex gets released before yielding
             {
+                //println!("Poll handling loop.");
+                
                 //Fetch the tasks that need to be sent in the response
-                let mut tasks = match self.tasks.lock() {
-                    Ok(tasks) => tasks,
+                match self.tasks.lock() {
+                    Ok(mut tasks) => {
+                        if !tasks.is_empty() {
+                            //If there are tasks, send them in the return
+                            let iter = tasks.iter();
+                            let collected:Vec<&ShimCall> = iter.collect();
+                            //println!("Tasks discovered and collected: {:?}",collected);
+                            let as_str=serde_json::to_string(&collected);
+                            tasks.clear();
+        
+                            match as_str
+                            {
+                                Ok(as_str)=>{
+                                    //println!("Sending to shim {:?}",as_str);
+                                    return Ok(Response::new(Full::new(Bytes::from(as_str))));
+                                },
+                                Err(e)=>{
+                                    eprintln!("Couldn't serialize requests. {:?}",e);
+                                }
+                            }
+                        }
+                    },
                     Err(e) => {
                         eprintln!("Couldn't lock tasks. {}", e);
                         return Ok(Response::new(Full::new(Bytes::from("Broken Poll Queue"))));
                     }
                 };
-
-                if !tasks.is_empty() {
-                    //If there are tasks, send them in the return
-                    let mut collected:Vec<ShimCall> = Vec::new();
-                    while !tasks.is_empty()
-                    {
-                        collected.push(tasks.pop_front().expect("Not empty, should be some."));
-                    }
-                    let as_str=serde_json::to_string(&collected);
-                    match as_str
-                    {
-                        Ok(as_str)=>{
-                            return Ok(Response::new(Full::new(Bytes::from(as_str))));
-                        },
-                        Err(e)=>{
-                            eprintln!("Couldn't serialize requests. {:?}",e);
-                        }
-                    }
-                }
             }
 
             //Now yield
@@ -97,6 +103,8 @@ impl CallSender {
         match self.tasks.lock()
         {
             Ok(mut tasks) => {
+                //println!("Pushing call to stack. {:?}",call);
+                //println!("There are currently {} tasks.",tasks.len());
                 tasks.push_back(call);
             },
             Err(e) => eprintln!("Couldn't lock tasks.{:?}",e),

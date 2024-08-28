@@ -45,7 +45,7 @@ impl EventHandler {
 
         /*
         println!(
-            "Received: {}, {}, {:?}, {}",
+            "Received event: {}, {}, {:?}, {}",
             method, path, headers, as_string
         );
         */

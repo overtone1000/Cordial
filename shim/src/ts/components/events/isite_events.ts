@@ -18,7 +18,7 @@
 //}
 
 function Radiology_EventLogout() {
-    Send_Post(
+    Send_Event(
         "logout"
     );
 }
@@ -32,7 +32,7 @@ function Radiology_EventPageStatus(
     nameOrID:string, //full path name of the page made visible
     type:"FOLDER"|"CANVAS"|"API",
     visible:"0"|"1") {
-    Send_Post(
+    Send_Event(
         {
             pagestatus:[nameOrID,type,visible]
         }

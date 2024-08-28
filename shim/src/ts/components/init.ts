@@ -31,6 +31,8 @@ function OnLoad() {
     else {
         Shim_Debug("Undefined user.");
     }
+
+    StartCallPolling();
 }
 
 function OnUnload() {

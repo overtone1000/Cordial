@@ -1,8 +1,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import type { DebugInteraction } from './debug';
-import type { TestInteraction } from './test';
+import type { SpecificQueryInteraction } from './query_specific';
 
-type Interaction = DebugInteraction | TestInteraction;
+type Interaction = DebugInteraction | SpecificQueryInteraction;
 
 interface InteractionArgument extends Record<string,unknown> { //Has to match InvokeArgs
     interaction: Interaction;
@@ -14,6 +14,9 @@ export let tauriInteraction = (arg: InteractionArgument) => {
         .then((res: any) => {
             console.log('tauri_ui_interaction: ', res);
         })
-        .catch((e: any) => console.error('tauri_ui_interaction', e));
+        .catch(
+            (e: any) => {
+                console.error('tauri_ui_interaction', e);
+            }
+        );
 };
-
