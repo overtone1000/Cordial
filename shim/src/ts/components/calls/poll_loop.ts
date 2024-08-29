@@ -5,38 +5,32 @@
 //Send synchronously to await response (necessary for Mozilla v4) but call from setTime to avoid blocking
 
 var call_url = "http://localhost:43529/";
+var min_timeout = 4; //Determined by html standard that nested setTimeouts will need to be 4 ms after 5 levels of nesting
 
 function StartCallPolling() {
-    setTimeout(Call_Poll);
-}
-
-function Waiting() {
-    Shim_Debug("Waiting for response...");
+    setTimeout(Call_Poll,min_timeout);
 }
 
 function Call_Poll() {
-    Shim_Debug("Should add try - catch, or is that supported in this environment?");
+    info("Polling.");
 
     try
     {
         var xhr = new XMLHttpRequest();
 
         xhr.open("GET", call_url, false);
+        xhr.timeout=5000;
+        //xhr.onreadystatechange = function () {Shim_Debug("On ready state change " + this.readyState);}
         xhr.send();
 
-        while(xhr.readyState !== XMLHttpRequest.DONE)
-        {
-            setTimeout(Waiting,1000);
-        }
-        
         var response_text = xhr.responseText;
-        Shim_Debug("Received response: " + response_text);
+        info("Poll received response: " + response_text);
         var calls = JSON.parse(response_text) as [Call]; //Comes as an array of calls even if it's just one.
 
         Shim_Debug("Using syntax here for (var call of calls) but will it work?");
         for (var call of calls)
         {
-            Shim_Debug("Iterating calls");
+            info("Iterating calls");
             switch (call.context)
             {
                 case "query":
@@ -48,18 +42,21 @@ function Call_Poll() {
                             query:query,
                             result:result
                         };
-                        Shim_Debug("Responding to query with: " + JSON.stringify(response));
+                        info("Responding to query with: " + JSON.stringify(response));
                         Send_Event(response);
                     }
             }
         }
 
-        Shim_Debug("Poll loop still happening too quickly. Disabled for now.");
-        //setTimeout(Call_Poll);
+        info("Finished polling.");
+        //Shim_Debug("Poll loop still happening too quickly. Disabled for now.");
+        //setTimeout(Call_Poll,min_timeout);
     }
-    catch
+    catch(e)
     {
+        info("Polling error. " + e.toString());
         //If polling fails, wait a bit before trying again
-        setTimeout(Call_Poll,5000);
+        //Shim_Debug("Poll loop still happening too quickly. Disabled for now.");
+        //setTimeout(Call_Poll,5000);
     }
 }

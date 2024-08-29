@@ -4,6 +4,8 @@ type Radiology_Interface = import ("./.d.ts").Radiology_Interface;
 declare var Radiology: Radiology_Interface;
 
 function OnLoad() {
+    info("Initializing.");
+
     var user;
     var _iSiteVersion;
     try {
@@ -32,7 +34,8 @@ function OnLoad() {
         Shim_Debug("Undefined user.");
     }
 
-    StartCallPolling();
+    //StartCallPolling();
+    info("Initialized.");
 }
 
 function OnUnload() {
