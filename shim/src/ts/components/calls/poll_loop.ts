@@ -10,6 +10,10 @@ function StartCallPolling() {
     setTimeout(Call_Poll);
 }
 
+function Waiting() {
+    Shim_Debug("Waiting for response...");
+}
+
 function Call_Poll() {
     Shim_Debug("Should add try - catch, or is that supported in this environment?");
 
@@ -19,6 +23,11 @@ function Call_Poll() {
 
         xhr.open("GET", call_url, false);
         xhr.send();
+
+        while(xhr.readyState !== XMLHttpRequest.DONE)
+        {
+            setTimeout(Waiting,1000);
+        }
         
         var response_text = xhr.responseText;
         Shim_Debug("Received response: " + response_text);
