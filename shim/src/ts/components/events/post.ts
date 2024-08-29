@@ -4,7 +4,7 @@ type ShimPost = ShimEvent | ShimCallResponse;
 var event_url = "http://localhost:43528/";
 
 function Send_Event(post: ShimPost) {
-    info("Posting event.");
+    event_thread_console("Posting event.");
     var xhr = new XMLHttpRequest();
 
     xhr.open("POST", event_url, true);
@@ -14,6 +14,6 @@ function Send_Event(post: ShimPost) {
     //Disabled for now
     //xhr.send(JSON.stringify(post));
 
-    info("Finished posting.");
+    event_thread_console("Finished posting.");
     return null;
 }

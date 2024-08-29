@@ -5,58 +5,72 @@
 //Send synchronously to await response (necessary for Mozilla v4) but call from setTime to avoid blocking
 
 var call_url = "http://localhost:43529/";
-var min_timeout = 4; //Determined by html standard that nested setTimeouts will need to be 4 ms after 5 levels of nesting
 
-function StartCallPolling() {
-    setTimeout(Call_Poll,min_timeout);
+function on_state_change(this: XMLHttpRequest, ev: Event):void
+{
+    switch(this.readyState)
+    {
+        case XMLHttpRequest.DONE:{
+            PollForCalls();
+        }
+    }
 }
 
-function Call_Poll() {
-    info("Polling.");
+function on_poll_load(this: XMLHttpRequest, ev: ProgressEvent):void{
+    poll_thread_console("Call received");
+    PollForCalls();
+    handleCall(this.responseText);
+}
+
+function retry(this: XMLHttpRequest, ev: ProgressEvent):void{
+    poll_thread_console("Retrying poll: " + this.statusText);
+    PollForCalls();
+}
+
+function handleCall(response_text:string)
+{
+    var calls = JSON.parse(response_text) as [Call]; //Comes as an array of calls even if it's just one.
+
+    for (var call of calls)
+    {
+        poll_thread_console("Handling " + call.context);
+        switch (call.context)
+        {
+            case "query":
+                {
+                    //If call is a query, perform the isite query and send the reponse as an event
+                    var query = call.data as Query;
+                    var result = RadiologyQuery(query);
+                    var response:QueryResultEvent={
+                        query:query,
+                        result:result
+                    };
+                    poll_thread_console("Responding to query with: " + JSON.stringify(response));
+                    Send_Event(response);
+                }
+        }
+    }
+}
+
+function PollForCalls() {
+    poll_thread_console("Polling.");
+    var xhr = new XMLHttpRequest();
 
     try
     {
-        var xhr = new XMLHttpRequest();
-
-        xhr.open("GET", call_url, false);
+        xhr.open("GET", call_url, true);
         xhr.timeout=5000;
-        //xhr.onreadystatechange = function () {Shim_Debug("On ready state change " + this.readyState);}
+        xhr.onreadystatechange = on_state_change; //Handles repeating the poll
+        xhr.onload = on_poll_load; //successful load
+        xhr.onabort = retry;
+        xhr.ontimeout = retry;
+        xhr.onerror = retry;
+
         xhr.send();
-
-        var response_text = xhr.responseText;
-        info("Poll received response: " + response_text);
-        var calls = JSON.parse(response_text) as [Call]; //Comes as an array of calls even if it's just one.
-
-        Shim_Debug("Using syntax here for (var call of calls) but will it work?");
-        for (var call of calls)
-        {
-            info("Iterating calls");
-            switch (call.context)
-            {
-                case "query":
-                    {
-                        //If call is a query, perform the isite query and send the reponse as an event
-                        var query = call.data as Query;
-                        var result = RadiologyQuery(query);
-                        var response:QueryResultEvent={
-                            query:query,
-                            result:result
-                        };
-                        info("Responding to query with: " + JSON.stringify(response));
-                        Send_Event(response);
-                    }
-            }
-        }
-
-        info("Finished polling.");
-        //Shim_Debug("Poll loop still happening too quickly. Disabled for now.");
-        //setTimeout(Call_Poll,min_timeout);
     }
     catch(e)
     {
-        info("Polling error. " + e.toString());
-        //If polling fails, wait a bit before trying again
-        //Shim_Debug("Poll loop still happening too quickly. Disabled for now.");
-        //setTimeout(Call_Poll,5000);
+        poll_thread_console("Retrying poll after error: " + xhr.statusText);
+        PollForCalls();
     }
 }
