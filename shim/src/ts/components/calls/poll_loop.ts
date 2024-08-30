@@ -5,26 +5,32 @@
 //Send synchronously to await response (necessary for Mozilla v4) but call from setTime to avoid blocking
 
 var call_url = "http://localhost:43529/";
+var XMLHttpRequest_DONE = 4; //Whoops, XMLHttpRequest properties don't exist in Mozilla 4 (they're undefined)! Need to use coded values!
+var XMLHttpRequest_SUCCESS = 200;
 
 function on_state_change(this: XMLHttpRequest, ev: Event):void
 {
-    switch(this.readyState)
+    try
     {
-        case XMLHttpRequest.DONE:{
-            PollForCalls();
+        if(this.readyState === XMLHttpRequest_DONE)
+        {
+            if(this.status === XMLHttpRequest_SUCCESS)
+            {
+                poll_thread_console("Handling call.");
+                handleCall(this.responseText);
+            }
+            else
+            {
+                poll_thread_console("Poll failure: " + this.status + ": " + this.statusText);
+            }
+            PollForCalls(); //No matter what, repeat polling.
         }
     }
-}
-
-function on_poll_load(this: XMLHttpRequest, ev: ProgressEvent):void{
-    poll_thread_console("Call received");
-    PollForCalls();
-    handleCall(this.responseText);
-}
-
-function retry(this: XMLHttpRequest, ev: ProgressEvent):void{
-    poll_thread_console("Retrying poll: " + this.statusText);
-    PollForCalls();
+    catch(e)
+    {
+        poll_thread_console("Polling state change error. " + e.message);
+        PollForCalls(); //No matter what, repeat polling.
+    }
 }
 
 function handleCall(response_text:string)
@@ -61,16 +67,20 @@ function PollForCalls() {
         xhr.open("GET", call_url, true);
         xhr.timeout=5000;
         xhr.onreadystatechange = on_state_change; //Handles repeating the poll
-        xhr.onload = on_poll_load; //successful load
+        
+        //These don't appear to work. Mozilla 4 uses a former version of XMLHttpRequest?
+        /*
+        xhr.onload = on_poll_load;
         xhr.onabort = retry;
         xhr.ontimeout = retry;
         xhr.onerror = retry;
+        */  
 
         xhr.send();
     }
     catch(e)
     {
-        poll_thread_console("Retrying poll after error: " + xhr.statusText);
+        poll_thread_console("Retrying poll after error: " + xhr.status + ": " + xhr.statusText + ", " + e.message);
         PollForCalls();
     }
 }

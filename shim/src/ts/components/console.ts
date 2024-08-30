@@ -35,11 +35,11 @@ function createConsolePublisher(div_name:string)
 
     return function publishToConsole(message:string)
     {
-        if(console.contents.length>max_length-1)
-        {
-            console.contents=console.contents.slice(-max_length,undefined);
-        }
         console.contents.push(Date.now().toString() + ": " + message);
+        if(console.contents.length>max_length)
+        {
+            console.contents=console.contents.slice(console.contents.length-max_length,console.contents.length);
+        }
     
         var to_string = "";
         for(var entry of console.contents)
