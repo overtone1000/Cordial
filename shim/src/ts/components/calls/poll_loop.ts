@@ -16,7 +16,7 @@ function on_state_change(this: XMLHttpRequest, ev: Event):void
         {
             if(this.status === XMLHttpRequest_SUCCESS)
             {
-                poll_thread_console("Handling call.");
+                poll_thread_console("Handling call. Response: " + this.responseText);
                 handleCall(this.responseText);
             }
             else

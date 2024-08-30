@@ -22,6 +22,7 @@ impl Service<Request<Incoming>> for EventHandler {
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn call(&self, request: Request<Incoming>) -> Self::Future {
+        println!("Handling event.");
         let result = Self::handle_poll(self.clone(), request);
         Box::pin(result)
     }
@@ -43,12 +44,10 @@ impl EventHandler {
         let as_string = String::from_utf8(request.collect().await?.to_bytes().to_vec())
             .expect("Couldn't parse bytes.");
 
-        /*
         println!(
             "Received event: {}, {}, {:?}, {}",
             method, path, headers, as_string
         );
-        */
 
         match serde_json::from_str(&as_string) {
             Ok(event) => {

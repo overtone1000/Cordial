@@ -25,6 +25,7 @@ impl Service<Request<Incoming>> for CallSender {
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn call(&self, request: Request<Incoming>) -> Self::Future {
+        println!("Handling poll.");
         let result = Self::handle_poll(self.clone(), request);
         Box::pin(result)
     }
@@ -77,7 +78,7 @@ impl CallSender {
                             match as_str
                             {
                                 Ok(as_str)=>{
-                                    //println!("Sending to shim {:?}",as_str);
+                                    println!("Sending to shim {:?}",as_str);
                                     return Ok(Response::new(Full::new(Bytes::from(as_str))));
                                 },
                                 Err(e)=>{
