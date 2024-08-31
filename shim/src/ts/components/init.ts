@@ -3,8 +3,12 @@
 type Radiology_Interface = import ("./.d.ts").Radiology_Interface;
 declare var Radiology: Radiology_Interface;
 
+var enabled=false;
+
 function OnLoad() {
     main_thread_console("Initializing.");
+
+    Enable();
 
     var user;
     var _iSiteVersion;
@@ -34,10 +38,22 @@ function OnLoad() {
         Shim_Debug("Undefined user.");
     }
 
-    PollForCalls();
     main_thread_console("Initialized.");
 }
 
 function OnUnload() {
 
+}
+
+function Enable() {
+    enabled=true;
+    StartCallPolling();
+    document.getElementById("enabled_flag").innerHTML = "Enabled";
+    main_thread_console("Enabled.");
+}
+
+function Disable() {
+    enabled=false;
+    document.getElementById("enabled_flag").innerHTML = "Disabled";
+    main_thread_console("Disabled.");
 }

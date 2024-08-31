@@ -10,14 +10,13 @@
 
 	<body onload="OnLoad()" onunload="OnUnload()">
 		<h1>Cordial Plugin</h1>
+		<button onclick="Enable()" type="button">Enable</button> 
+		<button onclick="Disable()" type="button">Disable</button>
+		<div id="enabled_flag"></div> 
 		<button onclick="RunTest()" type="button">Test</button> 
 		<button onclick="Reload()" type="button">Reload</button>
 		<div id="test_result"></div>
-		<h2>Main</h2>
+		<h2>Main Thread</h2>
 		<div id="main_thread_console"></div>
-		<h2>Polling</h2>
-		<div id="poll_thread_console"></div>
-		<h2>Events</h2>
-		<div id="event_thread_console"></div>
 	</body>
 </html>

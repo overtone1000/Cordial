@@ -52,5 +52,5 @@ function createConsolePublisher(div_name:string)
 }
 
 var main_thread_console = createConsolePublisher("main_thread_console");
-var poll_thread_console = createConsolePublisher("poll_thread_console");
-var event_thread_console = createConsolePublisher("event_thread_console");
+// var poll_thread_console = createConsolePublisher("poll_thread_console"); //Can't use because of asynchrony.
+//var event_thread_console = createConsolePublisher("event_thread_console"); //Can't use because of asynchrony.
