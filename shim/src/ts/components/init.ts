@@ -1,13 +1,11 @@
 //import { Shim_Debug } from "./shim_event_sender.js"; //Typescript doesn't handle imports in a way that is comaptible with the target platform of Mozilla 4.
 
-type Radiology_Interface = import ("./.d.ts").Radiology_Interface;
+type Radiology_Interface = import("./.d.ts").Radiology_Interface;
 declare var Radiology: Radiology_Interface;
 
-var enabled=false;
+var enabled = false;
 
 function OnLoad() {
-    main_thread_console("Initializing.");
-
     Enable();
 
     var user;
@@ -37,8 +35,6 @@ function OnLoad() {
     else {
         Shim_Debug("Undefined user.");
     }
-
-    main_thread_console("Initialized.");
 }
 
 function OnUnload() {
@@ -46,14 +42,12 @@ function OnUnload() {
 }
 
 function Enable() {
-    enabled=true;
+    enabled = true;
     StartCallPolling();
     document.getElementById("enabled_flag").innerHTML = "Enabled";
-    main_thread_console("Enabled.");
 }
 
 function Disable() {
-    enabled=false;
+    enabled = false;
     document.getElementById("enabled_flag").innerHTML = "Disabled";
-    main_thread_console("Disabled.");
 }

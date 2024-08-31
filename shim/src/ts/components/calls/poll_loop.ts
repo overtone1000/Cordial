@@ -11,7 +11,14 @@ var XMLHttpRequest_SUCCESS = 200;
 var ERR_DELAY = 500;
 var POLL_TIMEOUT = 5000; //Should be low enough to quickly pick up communication if the server restarts but long enough to cause minimal resource utilization.
 
+//Handle repeat polling here...
 function on_state_change(this: XMLHttpRequest, ev: Event): void {
+    Shim_Debug("readyState " + this.readyState + ", status " + this.status + " responseType " + this.responseType + ", responseText" + this.responseText + ", response " + this.response);
+
+    //This only lists timeout...
+    for (var key of Object.keys(this)) {
+        Shim_Debug(key);
+    }
     if (this.readyState === XMLHttpRequest_DONE) {
         if (this.status === XMLHttpRequest_SUCCESS) {
             var delay = undefined; //If there is no error, introduce no delay to next poll.
@@ -30,21 +37,29 @@ function on_state_change(this: XMLHttpRequest, ev: Event): void {
             StartCallPolling(delay);
         }
         else {
-            Shim_Debug("Poll exited with status " + this.status);
+            Shim_Debug("Poll exited with status " + this.status + ": " + this.statusText);
+            Shim_Debug("Poll response text " + this.responseText);
             StartCallPolling(ERR_DELAY); //Introduce a delay after a failure.
         }
     }
 }
 
-//Never called.
-/*
-function on_load(this: XMLHttpRequest, ev: ProgressEvent):void
-{
-    Shim_Debug("!!!Load");
-    
-    
+function on_load(this: XMLHttpRequest, ev: ProgressEvent): void {
+    Shim_Debug("!!!Load!!!");
 }
-*/
+
+function on_timeout(this: XMLHttpRequest, ev: ProgressEvent): void {
+    Shim_Debug("!!!Timeout!!!");
+}
+
+function on_error(this: XMLHttpRequest, ev: ProgressEvent): void {
+    Shim_Debug("!!!Error!!!");
+    //This is called!
+}
+
+function on_abort(this: XMLHttpRequest, ev: ProgressEvent): void {
+    Shim_Debug("!!!Abort!!!");
+}
 
 function handleCall(response_text: string) {
     try {
@@ -79,6 +94,10 @@ function private_PollForCalls() {
         xhr.open("GET", call_url, true); //Must be async. Freezes UI otherwise.
         xhr.timeout = 5000;
         xhr.onreadystatechange = on_state_change;
+        xhr.onload = on_load;
+        xhr.ontimeout = on_timeout;
+        xhr.onerror = on_error;
+        xhr.onabort = on_abort;
         xhr.send();
     }
 }
@@ -86,4 +105,5 @@ function private_PollForCalls() {
 function StartCallPolling(delay?: number) {
     //Seems like this needs to be done with setTimeout otherwise UI freezes
     setTimeout(private_PollForCalls, delay);
+
 }

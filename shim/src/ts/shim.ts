@@ -1,5 +1,4 @@
 /// <reference path="./components/reload.ts" />
-/// <reference path="./components/console.ts" />
 /// <reference path="./components/.d.ts" />
 /// <reference path="./components/events/post.ts" />
 /// <reference path="./components/events/commons.ts" />
