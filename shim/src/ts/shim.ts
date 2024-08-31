@@ -9,6 +9,7 @@
 /// <reference path="./components/events/isite_events.ts" />
 /// <reference path="./components/testing.ts" />
 /// <reference path="./components/calls/query.ts" />
+/// <reference path="./components/debug.ts" />
 /// <reference path="./components/init.ts" />
 
 //If order matters...
