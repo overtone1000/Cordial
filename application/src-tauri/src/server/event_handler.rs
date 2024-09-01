@@ -5,20 +5,15 @@ use hyper::{
     Request, Response,
 };
 
-use crate::shim_api::
-    events::ShimEvent
-;
-use std::{
-    future::Future,
-    pin::Pin,
-};
+use crate::shim_api::events::ShimEvent;
+use std::{future::Future, pin::Pin};
 
 #[derive(Clone)]
 pub struct EventHandler {}
 
 impl Service<Request<Incoming>> for EventHandler {
     type Response = Response<Full<Bytes>>;
-    type Error = hyper::Error;
+    type Error = Box<dyn std::error::Error + Send + Sync>;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn call(&self, request: Request<Incoming>) -> Self::Future {
@@ -36,7 +31,7 @@ impl EventHandler {
     async fn handle_poll(
         self: EventHandler,
         request: Request<Incoming>,
-    ) -> Result<Response<Full<Bytes>>, hyper::Error> {
+    ) -> Result<Response<Full<Bytes>>, Box<dyn std::error::Error + Send + Sync>> {
         let method = request.method().clone();
         let path = request.uri().path().to_string();
         let headers = request.headers().clone();
@@ -50,16 +45,14 @@ impl EventHandler {
         );
 
         match serde_json::from_str(&as_string) {
-            Ok(event) => {
-                match self.process_event(event) {
-                    Ok(_) => (),
-                    Err(e) => {
-                        eprintln!("Error processing event.{:?}, {:?}", e, as_string)
-                    }
+            Ok(event) => match self.process_event(event) {
+                Ok(_) => (),
+                Err(e) => {
+                    eprintln!("Error processing event.{:?}, {:?}", e, as_string)
                 }
             },
             Err(_e) => {
-                eprintln!("Error getting event from string. {:?}",&as_string);
+                eprintln!("Error getting event from string. {:?}", &as_string);
                 return Ok(Response::new(Full::new(Bytes::from("Invalid JSON"))));
             }
         };
@@ -71,13 +64,13 @@ impl EventHandler {
         println!("Processing event {:?}", event);
         match event {
             ShimEvent::Debug(message) => println!("Debug message from shim: {}", message),
-            ShimEvent::PageStatus(canvas_page_id, shelf_id,visible) => {
+            ShimEvent::PageStatus(canvas_page_id, shelf_id, visible) => {
                 println!("Shelf loaded:{} {} {}", canvas_page_id, shelf_id, visible)
-            },
-            ShimEvent::QueryResult(result)=>{
-                println!("Query result::{:?}",result);
-            },
-            ShimEvent::Logout=>{
+            }
+            ShimEvent::QueryResult(result) => {
+                println!("Query result::{:?}", result);
+            }
+            ShimEvent::Logout => {
                 println!("Logout.");
             }
         };

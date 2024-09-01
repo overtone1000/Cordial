@@ -1,5 +1,5 @@
-use server::{call_sender::CallSender, commons::spawn_server, event_handler::EventHandler};
 use ::tauri::Manager;
+use server::{call_sender::CallSender, commons::spawn_server, event_handler::EventHandler};
 use std::net::{IpAddr, Ipv4Addr};
 
 const SHIM_EVENT_PORT: u16 = 43528;
@@ -35,16 +35,14 @@ pub async fn tokio_serve<'a>(
 pub fn tauri_start(event_handler: CallSender) {
     println!("Starting Tauri Interface");
     ::tauri::Builder::default()
-        .setup(|app|
+        .setup(|app| {
+            #[cfg(debug_assertions)] // only include this code on debug builds
             {
-                #[cfg(debug_assertions)] // only include this code on debug builds
-                {
-                    let window = app.get_webview_window("main").unwrap();
-                    window.open_devtools();
-                }
-                Ok(())
+                let window = app.get_webview_window("main").unwrap();
+                window.open_devtools();
             }
-        )
+            Ok(())
+        })
         .manage(event_handler)
         .invoke_handler(::tauri::generate_handler![
             crate::tauri::interactions::tauri_ui_interaction

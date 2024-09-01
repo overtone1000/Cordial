@@ -27,9 +27,16 @@ where
         + Service<
             Request<Incoming>,
             Response = Response<Full<Bytes>>,
-            Error = hyper::Error,
+            Error = Box<dyn std::error::Error + Send + Sync>,
             Future = Pin<
-                Box<dyn Future<Output = Result<Response<Full<Bytes>>, hyper::Error>> + Send>,
+                Box<
+                    dyn Future<
+                            Output = Result<
+                                Response<Full<Bytes>>,
+                                Box<dyn std::error::Error + Send + Sync>,
+                            >,
+                        > + Send,
+                >,
             >,
         >,
 {
