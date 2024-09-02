@@ -14,5 +14,12 @@ function Send_Event_Post(post: ShimPost) {
 
 function Send_Event(post: ShimPost) {
     //setTimeout(Send_Event_Post,0,[post]); //Argument not passed when using iSite?
-    Send_Event_Post(post);
+    //Send_Event_Post(post); //freezes UI to call directly even if asynchronous    
+
+    var f = function ()
+    {
+        Send_Event_Post(post);
+    }
+
+    setTimeout(f,0);
 }

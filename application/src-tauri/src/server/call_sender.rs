@@ -4,6 +4,8 @@ use hyper::{
     service::Service,
     Request, Response,
 };
+use tokio::time::Instant;
+use tokio::time::Duration;
 
 use std::{
     collections::VecDeque,
@@ -66,11 +68,18 @@ impl CallSender {
             )
             .header("Access-Control-Allow-Origin", "*");
 
+        let start = Instant::now();
+        let timeout = Some(Duration::new(4,0));
+
         loop {
             //Put this in its own block so self.tasks mutex gets released before yielding
-            {
-                //println!("Poll handling loop.");
 
+            if Instant::now().checked_duration_since(start)>timeout
+            {
+
+            }
+            else
+            {
                 //Fetch the tasks that need to be sent in the response
                 match self.tasks.lock() {
                     Ok(mut tasks) => {

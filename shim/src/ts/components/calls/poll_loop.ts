@@ -6,7 +6,7 @@
 
 var call_url = "http://localhost:43529/";
 var XMLHttpRequest_DONE = 4; //Whoops, XMLHttpRequest properties don't exist in Mozilla 4 (they're undefined)! Need to use coded values!
-//var XMLHttpRequest_SUCCESS = 200;
+var XMLHttpRequest_SUCCESS = 200;
 
 var ERR_DELAY = 500;
 var WATCHDOG_DELAY = 5000; //Should be low enough to quickly pick up communication if the server restarts but long enough to cause minimal resource utilization.
@@ -18,15 +18,16 @@ var last_poll:number = 0;
 function on_state_change(this: XMLHttpRequest, ev: Event): void {
     Shim_Debug("XMLHttpRequest State Change. Ready state is " + this.readyState);
     if (this.readyState === XMLHttpRequest_DONE) {
-        //if (this.status === XMLHttpRequest_SUCCESS) { //Can't use status in iSite. This version doesn't seem to have it.
-        if(this.responseText !== undefined)
+        try
         {
-            Shim_Debug("Got package: " + this.responseText);
-            handleCall(this.responseText); //Handle call
+            if (this.status===XMLHttpRequest_SUCCESS)
+            {
+                handleCall(this.responseText);
+            }
+        }
+        finally
+        {
             private_PollForCalls() //Repeat polling without delay.
-        }    
-        else {
-            Shim_Debug("Got empty package.");
         }
     }
 }
@@ -57,21 +58,22 @@ function handleCall(response_text: string) {
 
         var calls = JSON.parse(response_text) as [Call]; //Comes as an array of calls even if it's just one.
 
-        for (var call_key in calls) {
-            Shim_Debug("   " + call_key);
-            switch (call_key) {
-                case "Query":
-                    {
-                        var call = calls[call_key] as QueryCall;
-                        //If call is a query, perform the isite query and send the reponse as an event
-                        var query = call.data as Query;
-                        var result = RadiologyQuery(query);
-                        var response: QueryResultEvent = {
-                            query: query,
-                            result: result
-                        };
-                        Send_Event(response);
-                    }
+        for (var call of calls) {
+            for(var call_key in call)
+            {
+                switch (call_key) {
+                    case "query":
+                        {
+                            var query = call[call_key] as Query;
+                            //If call is a query, perform the isite query and send the reponse as an event
+                            var result = RadiologyQuery(query);
+                            var response: QueryResultEvent = {
+                                query: query,
+                                result: result
+                            };
+                            Send_Event(response);
+                        }
+                }
             }
         }
     }
@@ -98,7 +100,7 @@ function private_PollForCalls() {
     }
 }
 
-function StartCallPolling(delay?: number) {
+function StartCallPolling() {
     if(enabled)
     {
         var timenow = Date.now();

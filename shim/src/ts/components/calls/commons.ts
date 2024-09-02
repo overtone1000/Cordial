@@ -1,6 +1,6 @@
 interface QueryCall
 {
-    data:Query
+    query:Query
 }
 
 type ShimCallResponse = number | QueryResultEvent;

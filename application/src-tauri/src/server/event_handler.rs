@@ -17,7 +17,6 @@ impl Service<Request<Incoming>> for EventHandler {
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn call(&self, request: Request<Incoming>) -> Self::Future {
-        println!("Handling event.");
         let result = Self::handle_poll(self.clone(), request);
         Box::pin(result)
     }
@@ -60,17 +59,19 @@ impl EventHandler {
     }
 
     fn process_event(&self, event: ShimEvent) -> Result<(), String> {
-        println!("Processing event {:?}", event);
         match event {
             ShimEvent::Debug(message) => println!("Debug message from shim: {}", message),
             ShimEvent::PageStatus(canvas_page_id, shelf_id, visible) => {
                 println!("Shelf loaded:{} {} {}", canvas_page_id, shelf_id, visible)
-            }
+            },
             ShimEvent::QueryResult(result) => {
                 println!("Query result::{:?}", result);
-            }
+            },
             ShimEvent::Logout => {
                 println!("Logout.");
+            },
+            _ => {
+                eprintln!("Unhandled event: {:?}",event);
             }
         };
 
