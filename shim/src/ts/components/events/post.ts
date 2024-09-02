@@ -13,5 +13,6 @@ function Send_Event_Post(post: ShimPost) {
 }
 
 function Send_Event(post: ShimPost) {
-    setTimeout(Send_Event_Post,0,[post]);
+    //setTimeout(Send_Event_Post,0,[post]); //Argument not passed when using iSite?
+    Send_Event_Post(post);
 }

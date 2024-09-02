@@ -1,6 +1,5 @@
 interface QueryCall
 {
-    context: "query",
     data:Query
 }
 

@@ -3,13 +3,13 @@
 type Context = "debug" | "logout" | "page_status" | "query_result";
 
 interface DebugEvent {
-    debug:string
+    debug:string //keys get switch to lower case
 }
 
 type LogoutEvent = "logout";
 
 interface PageStatusEvent {
-    pagestatus: [string,"FOLDER"|"CANVAS"|"API","0"|"1"]
+    pagestatus: [string,"FOLDER"|"CANVAS"|"API","0"|"1"] //keys get switch to lower case
 }
 
 interface QueryResultEvent {
