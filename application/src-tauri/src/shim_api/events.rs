@@ -15,11 +15,11 @@ pub(crate) enum ShimEvent {
 #[cfg(test)]
 mod tests {
     use super::{NumericalBoolean, ShimEvent};
-    use crate::shim_api::commons::test_serialization;
+    use crate::shim_api::commons::test_json_serialization;
 
     #[test]
     fn test_event_package_serialization() {
-        test_serialization(vec![
+        test_json_serialization(vec![
             ShimEvent::Debug("Testing debug.".to_string()),
             ShimEvent::PageStatus(
                 "TestCanvasID".to_string(),

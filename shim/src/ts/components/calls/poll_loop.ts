@@ -16,7 +16,7 @@ var last_poll:number = 0;
 
 //Handle repeat polling here...
 function on_state_change(this: XMLHttpRequest, ev: Event): void {
-    Shim_Debug("XMLHttpRequest State Change. Ready state is " + this.readyState);
+    //Shim_Debug("XMLHttpRequest State Change. Ready state is " + this.readyState);
     if (this.readyState === XMLHttpRequest_DONE) {
         try
         {
@@ -59,20 +59,29 @@ function handleCall(response_text: string) {
         var calls = JSON.parse(response_text) as [Call]; //Comes as an array of calls even if it's just one.
 
         for (var call of calls) {
-            for(var call_key in call)
+            switch(call)
             {
-                switch (call_key) {
-                    case "query":
-                        {
-                            var query = call[call_key] as Query;
-                            //If call is a query, perform the isite query and send the reponse as an event
-                            var result = RadiologyQuery(query);
-                            var response: QueryResultEvent = {
-                                query: query,
-                                result: result
-                            };
-                            Send_Event(response);
+                case "handshake":{}
+                default:
+                {
+                    //If we are here, call is an ObjectCall, so inspect keys
+                    for(var call_key in call as ObjectCall)
+                    {
+                        Shim_Debug("Handling key: " + call_key);
+                        switch (call_key) {
+                            case "query":
+                                {
+                                    var query = call[call_key] as Query;
+                                    //If call is a query, perform the isite query and send the reponse as an event
+                                    var result = RadiologyQuery(query);
+                                    var response: QueryResultEvent = {
+                                        query: query,
+                                        result: result
+                                    };
+                                    Send_Event(response);
+                                }
                         }
+                    }       
                 }
             }
         }
@@ -85,18 +94,24 @@ function handleCall(response_text: string) {
 function private_PollForCalls() {
 
     if (enabled) {
-        Shim_Debug("Polling");
-        last_poll = Date.now();
+        try
+        {
+            Shim_Debug("Polling");
+            last_poll = Date.now();
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", call_url + "?" + Date.now(), true); //Must be async. Freezes UI otherwise.
+            xhr.timeout = POLL_TIMEOUT;
+            xhr.onreadystatechange = on_state_change; //This is called on test browser and isite
+            xhr.onload = on_load; //This is called on test browser but NOT in isite
+            xhr.ontimeout = on_timeout; //This is called in isite but not sure it works correctly
+            xhr.onerror = on_error; //Not observed in isite
+            xhr.onabort = on_abort; //Not observed in isite
+            xhr.send();
+        }
+        catch(e)
+        {
 
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", call_url + "?" + Date.now(), true); //Must be async. Freezes UI otherwise.
-        xhr.timeout = POLL_TIMEOUT;
-        xhr.onreadystatechange = on_state_change; //This is called on test browser and isite
-        xhr.onload = on_load; //This is called on test browser but NOT in isite
-        xhr.ontimeout = on_timeout; //This is called in isite but not sure it works correctly
-        xhr.onerror = on_error; //Not observed in isite
-        xhr.onabort = on_abort; //Not observed in isite
-        xhr.send();
+        }
     }
 }
 

@@ -76,7 +76,7 @@
 		>
 		<Button
 			on:click={() => {
-				//specificQuery("2150241","2103TEST"); //this should pull up a 7/26/22 CR for "TEST,DUMMY"
+				specificQuery("2150241","2103TEST"); //this should pull up a 7/26/22 CR for "TEST,DUMMY"
 				specificQuery("FOO","BAR"); //this is intentionally nonsensical
 			}}>Test Specific Query</Button
 		>

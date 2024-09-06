@@ -62,7 +62,9 @@ function RadiologyQuery(
     //query_type:QueryType, 
     //max_results:number 
     ) : string {
-    Shim_Debug("Query string: " + query);
+    Shim_Debug("Query string: " + query.query_string);
+    Shim_Debug("Query type: " + query.query_type);
+    Shim_Debug("Query max results: " + query.max_results);
 
     var queryResults = Radiology.Query(query.query_string, query.query_type, query.max_results);
     if (queryResults === "") {

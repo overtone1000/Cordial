@@ -1,7 +1,7 @@
 pub type CanvasPageID = String;
 pub type ShelfID = String;
 
-pub(crate) fn test_serialization<T>(original: T)
+pub(crate) fn test_json_serialization<T>(original: T)
 where
     T: serde::Serialize + for<'a> serde::Deserialize<'a> + PartialEq + std::fmt::Debug,
 {
