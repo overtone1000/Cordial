@@ -4,10 +4,15 @@ type Radiology_Interface = import("./.d.ts").Radiology_Interface;
 declare var Radiology: Radiology_Interface;
 
 var enabled = false;
+var INITIALIZATION_DELAY = 1000;
 
 function OnLoad() {
-    Enable();
+    setTimeout(init,INITIALIZATION_DELAY); //This seems to fix the frozen black-screen problem.
+}
 
+function init() {
+    Enable();
+    
     var user;
     var _iSiteVersion;
     try {

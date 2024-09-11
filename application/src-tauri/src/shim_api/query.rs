@@ -1,9 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-const ACCESSION_FIELD:&str = "x00080050";
-const MRN_FIELD:&str = "x00100020";
-const STUDYDTTM_FIELD:&str = "StudyDTTM";
 const ESCAPED_QUOTE:&str = "\"";
+pub(crate) mod fields
+{
+    pub(crate) const ACCESSION:&str = "x00080050";
+    pub(crate) const MRN:&str = "x00100020";
+    pub(crate) const STUDYDTTM:&str = "StudyDTTM";
+}
+
 /*
 These are serialized into literal strings, so their names need to be exactly these four strings in all caps
 or else a custom serialization would have to be implemented.
@@ -31,9 +35,9 @@ impl ShimQuery
     {
         let query_str = 
         "".to_string() +
-        ACCESSION_FIELD + " = " + ESCAPED_QUOTE + accession + ESCAPED_QUOTE +
+        fields::ACCESSION + " = " + ESCAPED_QUOTE + accession + ESCAPED_QUOTE +
         " AND " +
-        MRN_FIELD + " = " + ESCAPED_QUOTE + mrn + ESCAPED_QUOTE;
+        fields::MRN + " = " + ESCAPED_QUOTE + mrn + ESCAPED_QUOTE;
 
         ShimQuery{
             query_string: query_str,
@@ -58,7 +62,6 @@ pub(crate) struct Exam
     accession:String,
     patient_sex:String,
     study_date_time:chrono::NaiveDateTime,
-    continue here
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]

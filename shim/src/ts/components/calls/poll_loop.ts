@@ -25,6 +25,10 @@ function on_state_change(this: XMLHttpRequest, ev: Event): void {
                 handleCall(this.responseText);
             }
         }
+        catch(e)
+        {
+            Shim_Debug("Error handling state change.");
+        }
         finally
         {
             private_PollForCalls() //Repeat polling without delay.
@@ -110,7 +114,7 @@ function private_PollForCalls() {
         }
         catch(e)
         {
-
+            Shim_Debug("Error polling.");
         }
     }
 }
@@ -118,16 +122,23 @@ function private_PollForCalls() {
 function StartCallPolling() {
     if(enabled)
     {
-        var timenow = Date.now();
-        if(last_poll+WATCHDOG_DELAY<timenow)
+        try
         {
-            Shim_Debug("Watchdog restarted polling.");
-            setTimeout(private_PollForCalls, WATCHDOG_DELAY);
+            var timenow = Date.now();
+            if(last_poll+WATCHDOG_DELAY<timenow)
+            {
+                Shim_Debug("Watchdog restarted polling.");
+                setTimeout(private_PollForCalls, WATCHDOG_DELAY);
+            }
+            else
+            {
+                Shim_Debug("Watchdog standing down.");
+            }
+            setTimeout(StartCallPolling, WATCHDOG_DELAY); //Just loops this every WATCHDOG_DELAY milliseconds.
         }
-        else
+        catch(e)
         {
-            Shim_Debug("Watchdog standing down.");
+            Shim_Debug("Watchdog error.");
         }
-        setTimeout(StartCallPolling, WATCHDOG_DELAY); //Just loops this every WATCHDOG_DELAY milliseconds.
     }
 }
