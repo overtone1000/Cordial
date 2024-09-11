@@ -31,7 +31,10 @@ function on_state_change(this: XMLHttpRequest, ev: Event): void {
         }
         finally
         {
-            private_PollForCalls() //Repeat polling without delay.
+            if(this===last_xhr)
+            {
+                private_PollForCalls() //Repeat polling without delay.
+            }
         }
     }
 }
@@ -95,6 +98,8 @@ function handleCall(response_text: string) {
     }
 }
 
+var last_xhr:XMLHttpRequest|undefined=undefined;
+
 function private_PollForCalls() {
 
     if (enabled) {
@@ -111,6 +116,8 @@ function private_PollForCalls() {
             xhr.onerror = on_error; //Not observed in isite
             xhr.onabort = on_abort; //Not observed in isite
             xhr.send();
+            last_xhr=xhr;
+            setTimeout(getEventAbortFunction(xhr),POLL_TIMEOUT*2); //Trying this to address black screen
         }
         catch(e)
         {

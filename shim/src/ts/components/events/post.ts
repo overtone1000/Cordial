@@ -4,6 +4,24 @@ type ShimPost = ShimEvent | ShimCallResponse;
 var event_url = "http://localhost:43528/";
 var TIMEOUT=1000;
 
+function getEventAbortFunction(xhr:XMLHttpRequest)
+{
+    return function ()
+    {
+        try
+        {
+            if (xhr.readyState !== XMLHttpRequest_DONE)
+            {
+                xhr.abort();
+            }
+        }
+        catch(e)
+        {
+            console.info(e);
+        }
+    };
+}
+
 function Send_Event_Post(post: ShimPost) {
     try
     {
@@ -12,6 +30,8 @@ function Send_Event_Post(post: ShimPost) {
         xhr.timeout = TIMEOUT;
         xhr.setRequestHeader('Content-Type', 'application/json'); //Leave this content type as application. 'plain/text' caused CSRF protection to manifest.
         xhr.send(JSON.stringify(post));
+
+        setTimeout(getEventAbortFunction(xhr),TIMEOUT*2); //Trying this to address black screen
     }
     catch(e)
     {
