@@ -4,34 +4,32 @@ type ShimPost = ShimEvent | ShimCallResponse;
 var event_url = "http://localhost:43528/";
 var TIMEOUT=1000;
 
-function getEventAbortFunction(xhr:XMLHttpRequest)
+var xhr_event = new XMLHttpRequest(); //Use one instance to avoid memory leak
+
+function eventAbortFunction()
 {
-    return function ()
+    try
     {
-        try
+        if (xhr_event.readyState !== XMLHttpRequest_DONE)
         {
-            if (xhr.readyState !== XMLHttpRequest_DONE)
-            {
-                xhr.abort();
-            }
+            xhr_event.abort();
         }
-        catch(e)
-        {
-            console.info(e);
-        }
-    };
+    }
+    catch(e)
+    {
+        console.info(e);
+    }
 }
 
 function Send_Event_Post(post: ShimPost) {
     try
     {
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", event_url, true);
-        xhr.timeout = TIMEOUT;
-        xhr.setRequestHeader('Content-Type', 'application/json'); //Leave this content type as application. 'plain/text' caused CSRF protection to manifest.
-        xhr.send(JSON.stringify(post));
+        xhr_event.open("POST", event_url, true);   
+        xhr_event.timeout = TIMEOUT;
+        xhr_event.setRequestHeader('Content-Type', 'application/json'); //Leave this content type as application. 'plain/text' caused CSRF protection to manifest.
+        xhr_event.send(JSON.stringify(post));
 
-        setTimeout(getEventAbortFunction(xhr),TIMEOUT*2); //Trying this to address black screen
+        setTimeout(eventAbortFunction,TIMEOUT*2); //Trying this to address black screen
     }
     catch(e)
     {
@@ -42,7 +40,6 @@ function Send_Event_Post(post: ShimPost) {
 function Send_Event(post: ShimPost) {
     //setTimeout(Send_Event_Post,0,[post]); //Argument not passed when using iSite?
     //Send_Event_Post(post); //freezes UI to call directly even if asynchronous    
-
     try
     {
         var f = function ()
