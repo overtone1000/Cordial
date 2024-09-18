@@ -69,6 +69,7 @@ dependencies = [
  "chrono",
  "http-body-util",
  "hyper",
+ "hyper-trm",
  "hyper-util",
  "serde",
  "serde_json",
@@ -1304,6 +1305,18 @@ dependencies = [
  "smallvec",
  "tokio",
  "want",
+]
+
+[[package]]
+name = "hyper-trm"
+version = "0.1.0"
+dependencies = [
+ "futures-util",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "tokio",
+ "tokio-util",
 ]
 
 [[package]]
