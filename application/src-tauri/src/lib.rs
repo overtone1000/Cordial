@@ -27,7 +27,7 @@ pub async fn tokio_serve<'a>(
         &event_handler,
     );
 
-    tokio::try_join!(call_server, event_server)?;
+    tokio::join!(call_server, event_server)?;
 
     Ok(())
 }

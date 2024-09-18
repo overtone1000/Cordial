@@ -4,8 +4,11 @@ use hyper::{
     service::Service,
     Request, Response,
 };
-use tokio::time::Instant;
+use hyper_trm::generic_service::{
+    full_to_boxed_body, HandlerError, HandlerFuture, HandlerResponse, HandlerResult,
+};
 use tokio::time::Duration;
+use tokio::time::Instant;
 
 use std::{
     collections::VecDeque,
@@ -16,7 +19,7 @@ use std::{
 
 use crate::shim_api::calls::ShimCall;
 
-const HANDSHAKE_INTERVAL: std::option::Option<Duration> = Some(Duration::new(4,0));
+const HANDSHAKE_INTERVAL: std::option::Option<Duration> = Some(Duration::new(4, 0));
 
 #[derive(Clone)]
 pub struct CallSender {
@@ -24,9 +27,9 @@ pub struct CallSender {
 }
 
 impl Service<Request<Incoming>> for CallSender {
-    type Response = Response<Full<Bytes>>;
-    type Error = Box<dyn std::error::Error + Send + Sync>;
-    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
+    type Response = HandlerResponse;
+    type Error = HandlerError;
+    type Future = HandlerFuture;
 
     fn call(&self, request: Request<Incoming>) -> Self::Future {
         println!("Handling poll.");
@@ -42,10 +45,7 @@ impl CallSender {
         }
     }
 
-    async fn handle_poll(
-        self: CallSender,
-        _request: Request<Incoming>,
-    ) -> Result<Response<Full<Bytes>>, Box<dyn std::error::Error + Send + Sync>> {
+    async fn handle_poll(self: CallSender, _request: Request<Incoming>) -> HandlerResult {
         println!("Received poll request.");
 
         /*
@@ -72,20 +72,16 @@ impl CallSender {
             )
             .header("Access-Control-Allow-Origin", "*");
 
-        let start = Instant::now();        
+        let start = Instant::now();
 
         loop {
             //Put this in its own block so self.tasks mutex gets released before yielding
             //Fetch the tasks that need to be sent in the response
             match self.tasks.lock() {
                 Ok(mut tasks) => {
-
                     //If handshake_interval has passed, add a handshake task
-                    if Instant::now().checked_duration_since(start)>HANDSHAKE_INTERVAL
-                    {
-                        tasks.push_back(
-                            ShimCall::Handshake  
-                        );
+                    if Instant::now().checked_duration_since(start) > HANDSHAKE_INTERVAL {
+                        tasks.push_back(ShimCall::Handshake);
                     }
                     if !tasks.is_empty() {
                         //If there are tasks, send them in the return
@@ -102,7 +98,7 @@ impl CallSender {
                                 match response_builder
                                     .status(200)
                                     .header("Content-Type", "application/json")
-                                    .body(Full::new(Bytes::from(as_str)))
+                                    .body(full_to_boxed_body(as_str))
                                 {
                                     Ok(response) => {
                                         return Ok(response);
@@ -123,7 +119,7 @@ impl CallSender {
                     match response_builder
                         .status(500) //Internal server error
                         .header("Content-Type", "text/plain ")
-                        .body(Full::new(Bytes::from("Broken Poll Queue")))
+                        .body(full_to_boxed_body("Broken Poll Queue"))
                     {
                         Ok(response) => {
                             return Ok(response);
