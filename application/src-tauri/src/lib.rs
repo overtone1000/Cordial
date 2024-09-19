@@ -1,5 +1,6 @@
 use ::tauri::Manager;
-use server::{call_sender::CallSender, commons::spawn_server, event_handler::EventHandler};
+use hyper_trm::spawn_server;
+use server::{call_sender::CallSender, event_handler::EventHandler};
 use std::net::{IpAddr, Ipv4Addr};
 
 const SHIM_EVENT_PORT: u16 = 43528;
@@ -17,17 +18,27 @@ pub async fn tokio_serve<'a>(
     let call_server = spawn_server(
         IpAddr::V4(Ipv4Addr::LOCALHOST),
         SHIM_CALL_PORT,
-        &call_handler,
+        call_handler.clone(),
     );
 
     let event_handler = EventHandler::new();
     let event_server = spawn_server(
         IpAddr::V4(Ipv4Addr::LOCALHOST),
         SHIM_EVENT_PORT,
-        &event_handler,
+        event_handler,
     );
 
-    tokio::join!(call_server, event_server)?;
+    let (call_server_result, event_server_result) = tokio::join!(call_server, event_server);
+
+    match call_server_result {
+        Ok(_) => (),
+        Err(e) => return Err(e),
+    };
+
+    match event_server_result {
+        Ok(_) => (),
+        Err(e) => return Err(e),
+    };
 
     Ok(())
 }
