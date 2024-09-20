@@ -5,7 +5,7 @@ use hyper::{
     service::Service,
     Request, Response,
 };
-use hyper_trm::generic_service::{
+use hyper_trm::commons::{
     full_to_boxed_body, HandlerError, HandlerFuture, HandlerResponse, HandlerResult,
 };
 use std::{future::Future, pin::Pin};
