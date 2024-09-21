@@ -1,5 +1,8 @@
 use ::tauri::Manager;
-use hyper_trm::spawn_server;
+use hyper_trm::{
+    service::{stateful_service::StatefulService, stateless_service::StatelessService},
+    spawn_server,
+};
 use server::{call_sender::CallSender, event_handler::EventHandler};
 use std::net::{IpAddr, Ipv4Addr};
 
@@ -18,14 +21,13 @@ pub async fn tokio_serve<'a>(
     let call_server = spawn_server(
         IpAddr::V4(Ipv4Addr::LOCALHOST),
         SHIM_CALL_PORT,
-        call_handler.clone(),
+        StatefulService::create(call_handler.clone()),
     );
 
-    let event_handler = EventHandler::new();
     let event_server = spawn_server(
         IpAddr::V4(Ipv4Addr::LOCALHOST),
         SHIM_EVENT_PORT,
-        event_handler,
+        StatelessService::<EventHandler>::create(),
     );
 
     let (call_server_result, event_server_result) = tokio::join!(call_server, event_server);

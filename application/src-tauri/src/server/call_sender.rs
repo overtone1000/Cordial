@@ -4,8 +4,9 @@ use hyper::{
     service::Service,
     Request, Response,
 };
-use hyper_trm::commons::{
-    full_to_boxed_body, HandlerError, HandlerFuture, HandlerResponse, HandlerResult,
+use hyper_trm::{
+    commons::{full_to_boxed_body, HandlerError, HandlerFuture, HandlerResponse, HandlerResult},
+    service::stateful_service::StatefulHandler,
 };
 use tokio::time::Duration;
 use tokio::time::Instant;
@@ -26,26 +27,8 @@ pub struct CallSender {
     tasks: Arc<Mutex<VecDeque<ShimCall>>>,
 }
 
-impl Service<Request<Incoming>> for CallSender {
-    type Response = HandlerResponse;
-    type Error = HandlerError;
-    type Future = HandlerFuture;
-
-    fn call(&self, request: Request<Incoming>) -> Self::Future {
-        println!("Handling poll.");
-        let result = Self::handle_poll(self.clone(), request);
-        Box::pin(result)
-    }
-}
-
-impl CallSender {
-    pub fn new() -> CallSender {
-        CallSender {
-            tasks: Arc::new(Mutex::new(VecDeque::new())),
-        }
-    }
-
-    async fn handle_poll(self: CallSender, _request: Request<Incoming>) -> HandlerResult {
+impl StatefulHandler for CallSender {
+    async fn handle_request(self: Self, request: Request<Incoming>) -> HandlerResult {
         println!("Received poll request.");
 
         /*
@@ -133,6 +116,14 @@ impl CallSender {
 
             //Now yield
             tokio::task::yield_now().await;
+        }
+    }
+}
+
+impl CallSender {
+    pub fn new() -> CallSender {
+        CallSender {
+            tasks: Arc::new(Mutex::new(VecDeque::new())),
         }
     }
 
