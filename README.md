@@ -1,4 +1,4 @@
-# Intellispace-_Plugin
+# Cordial
 Custom Intellispace Plugin
 
 ## Dependencies
